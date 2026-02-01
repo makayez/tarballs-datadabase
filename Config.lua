@@ -222,102 +222,99 @@ function Config:BuildModuleContent(container, moduleId)
     yOffset = yOffset - 40
 
     -- Content management section
+    local effectiveContent = DB:GetEffectiveContent(moduleId)
     local contentLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     contentLabel:SetPoint("TOPLEFT", 10, yOffset)
-    contentLabel:SetText("Content (" .. #moduleDB.content .. " items)")
+    contentLabel:SetText("Content (" .. #effectiveContent .. " items)")
     yOffset = yOffset - 30
 
-    -- Scrollable content list
+    -- Instructions
+    local instructionsLabel = container:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    instructionsLabel:SetPoint("TOPLEFT", 10, yOffset)
+    instructionsLabel:SetPoint("TOPRIGHT", -10, yOffset)
+    instructionsLabel:SetJustifyH("LEFT")
+    instructionsLabel:SetText("Edit the content below (one item per line). Delete lines to remove items, add lines to create new ones.")
+    yOffset = yOffset - 25
+
+    -- Multi-line text editor
     local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, yOffset)
-    scrollFrame:SetSize(630, 150)
+    scrollFrame:SetSize(630, 180)
 
-    local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollFrame:SetScrollChild(scrollChild)
-    scrollChild:SetSize(630, 1)
+    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    editBox:SetMultiLine(true)
+    editBox:SetAutoFocus(false)
+    editBox:SetFontObject("GameFontHighlightSmall")
+    editBox:SetWidth(610)
+    editBox:SetMaxLetters(0)
+    editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
-    local contentButtons = {}
+    scrollFrame:SetScrollChild(editBox)
 
-    local function RefreshContentList()
-        -- Clear existing buttons
-        for _, btn in ipairs(contentButtons) do
-            btn:Hide()
-            btn:SetParent(nil)
-        end
-        contentButtons = {}
-
-        contentLabel:SetText("Content (" .. #moduleDB.content .. " items)")
-
-        local content = DB:GetContent(moduleId)
-        local itemYOffset = 0
-
-        for i, item in ipairs(content) do
-            local itemFrame = CreateFrame("Frame", nil, scrollChild)
-            itemFrame:SetSize(600, 50)
-            itemFrame:SetPoint("TOPLEFT", 5, -itemYOffset)
-
-            -- Item text
-            local itemText = itemFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-            itemText:SetPoint("TOPLEFT", 5, -5)
-            itemText:SetPoint("TOPRIGHT", -45, -5)
-            itemText:SetJustifyH("LEFT")
-            itemText:SetWordWrap(true)
-            itemText:SetText(item)
-
-            -- Delete button
-            local deleteBtn = CreateFrame("Button", nil, itemFrame, "UIPanelButtonTemplate")
-            deleteBtn:SetSize(40, 20)
-            deleteBtn:SetPoint("TOPRIGHT", -5, -5)
-            deleteBtn:SetText("Del")
-            deleteBtn.itemIndex = i
-            deleteBtn:SetScript("OnClick", function(self)
-                DB:RemoveContent(moduleId, self.itemIndex)
-                RefreshContentList()
-            end)
-
-            -- Divider
-            local divider = itemFrame:CreateTexture(nil, "ARTWORK")
-            divider:SetHeight(1)
-            divider:SetPoint("BOTTOMLEFT", 0, 0)
-            divider:SetPoint("BOTTOMRIGHT", 0, 0)
-            divider:SetColorTexture(0.3, 0.3, 0.3, 0.5)
-
-            table.insert(contentButtons, itemFrame)
-            itemYOffset = itemYOffset + 50
-        end
-
-        scrollChild:SetHeight(math.max(itemYOffset, scrollFrame:GetHeight()))
+    -- Populate with current content
+    local function LoadContent()
+        local content = DB:GetEffectiveContent(moduleId)
+        editBox:SetText(table.concat(content, "\n"))
+        editBox:SetCursorPosition(0)
+        contentLabel:SetText("Content (" .. #content .. " items)")
     end
 
-    container.RefreshContentList = RefreshContentList
+    container.LoadContent = LoadContent
 
-    yOffset = yOffset - 160
+    yOffset = yOffset - 190
 
-    -- Add new item section
-    local addLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    addLabel:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 10, 50)
-    addLabel:SetText("Add new:")
+    -- Save button and status
+    local saveBtn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
+    saveBtn:SetSize(100, 25)
+    saveBtn:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 10, 30)
+    saveBtn:SetText("Save Changes")
 
-    local addEditBox = CreateFrame("EditBox", nil, container, "InputBoxTemplate")
-    addEditBox:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 10, 25)
-    addEditBox:SetSize(500, 25)
-    addEditBox:SetAutoFocus(false)
-    addEditBox:SetMaxLetters(500)
+    local statusLabel = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    statusLabel:SetPoint("LEFT", saveBtn, "RIGHT", 10, 0)
+    statusLabel:SetText("")
 
-    local addBtn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
-    addBtn:SetSize(100, 25)
-    addBtn:SetPoint("LEFT", addEditBox, "RIGHT", 10, 0)
-    addBtn:SetText("Add")
-    addBtn:SetScript("OnClick", function()
-        local newItem = addEditBox:GetText():trim()
-        if newItem ~= "" then
-            DB:AddContent(moduleId, newItem)
-            addEditBox:SetText("")
-            RefreshContentList()
+    saveBtn:SetScript("OnClick", function()
+        local text = editBox:GetText()
+        local newContent = {}
+
+        -- Parse lines (split by newline)
+        for line in text:gmatch("[^\r\n]+") do
+            line = line:trim()
+            if line ~= "" then
+                table.insert(newContent, line)
+            end
         end
+
+        -- Update the database
+        DB:SetEffectiveContent(moduleId, newContent)
+
+        -- Show feedback
+        statusLabel:SetText("Saved! (" .. #newContent .. " items)")
+        contentLabel:SetText("Content (" .. #newContent .. " items)")
+
+        -- Clear status after 3 seconds
+        C_Timer.After(3, function()
+            statusLabel:SetText("")
+        end)
     end)
 
-    RefreshContentList()
+    -- Reset button
+    local resetBtn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
+    resetBtn:SetSize(120, 25)
+    resetBtn:SetPoint("LEFT", saveBtn, "RIGHT", 120, 0)
+    resetBtn:SetText("Reset to Defaults")
+    resetBtn:SetScript("OnClick", function()
+        -- Clear all user changes
+        moduleDB.userAdditions = {}
+        moduleDB.userDeletions = {}
+        LoadContent()
+        statusLabel:SetText("Reset to defaults!")
+        C_Timer.After(3, function()
+            statusLabel:SetText("")
+        end)
+    end)
+
+    LoadContent()
 end
 
 -- ============================================================================
@@ -329,12 +326,6 @@ Config.frame = nil
 function Config:Show()
     if not self.frame then
         self.frame = CreateConfigPanel()
-    end
-    -- Refresh all content lists
-    for _, tab in ipairs(self.moduleTabs) do
-        if self.frame[tab.moduleId .. "RefreshContentList"] then
-            self.frame[tab.moduleId .. "RefreshContentList"]()
-        end
     end
     self.frame:Show()
 end

@@ -124,11 +124,12 @@ local function TriggerContent(triggerType)
     end
 
     -- Get random content from database matching trigger and group
-    local content = Dadabase.DatabaseManager:GetRandomContent(triggerType, group)
+    local content, moduleId = Dadabase.DatabaseManager:GetRandomContent(triggerType, group)
 
     if content then
         lastContentTime = now
-        SendContent(content, group)
+        local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
+        SendContent(prefix .. content, group)
     else
         DebugPrint("  BLOCKED: No matching content found")
     end
@@ -240,14 +241,16 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
 
     elseif msg == "say" then
         local group = GetCurrentGroup()
-        local content = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
+        local content, moduleId = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
+        local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
+        local message = prefix .. content
 
         if IsInRaid() then
-            SendChatMessage(content, "RAID")
+            SendChatMessage(message, "RAID")
         elseif IsInGroup() then
-            SendChatMessage(content, "PARTY")
+            SendChatMessage(message, "PARTY")
         else
-            SendChatMessage(content, "SAY")
+            SendChatMessage(message, "SAY")
         end
 
     elseif msg == "guild" then
@@ -255,8 +258,9 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
             print("You are not in a guild!")
         else
             local group = GetCurrentGroup()
-            local content = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
-            SendChatMessage(content, "GUILD")
+            local content, moduleId = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
+            local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
+            SendChatMessage(prefix .. content, "GUILD")
         end
 
     elseif msg == "status" then
@@ -273,7 +277,8 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         for moduleId, module in pairs(Dadabase.DatabaseManager.modules) do
             local moduleDB = TarballsDadabaseDB.modules[moduleId]
             if moduleDB then
-                print("  [" .. module.name .. "] " .. (moduleDB.enabled and "ON" or "OFF") .. " - " .. #moduleDB.content .. " items")
+                local content = Dadabase.DatabaseManager:GetEffectiveContent(moduleId)
+                print("  [" .. module.name .. "] " .. (moduleDB.enabled and "ON" or "OFF") .. " - " .. #content .. " items")
             end
         end
 

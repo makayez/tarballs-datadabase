@@ -64,13 +64,18 @@ Each content type has its own tab with:
 - Parties - Enable for party groups
 
 **Content Management:**
-- Browse all content items
-- Add custom content
-- Remove any content (default or custom)
+- Edit all content in a multi-line text editor
+- Add custom content (one per line)
+- Remove any content (delete the line)
+- Reset to defaults button available
 
 ## Content Database
 
-On first install, all default content for each type is copied to your SavedVariables. You have full control to add, remove, or modify content. When the addon is updated with new default content, only new items are added to your collection, preserving your customizations.
+The addon uses a change-tracking system to manage content efficiently. Default content is stored in the addon code, while only your customizations (additions and deletions) are saved to your SavedVariables. This means:
+- New default content automatically appears when you update the addon
+- Items you delete stay deleted (won't reappear in updates)
+- Custom items you add are preserved across updates
+- SavedVariables stays small regardless of content size
 
 **Default Content:**
 - Dad Jokes: 100+ classic dad jokes and puns (enabled by default for wipes in raids/parties)
@@ -93,7 +98,8 @@ Settings are stored in `WTF/Account/<account>/SavedVariables/TarballsDadabase.lu
   - `enabled` - Module enable/disable
   - `triggers` - Which triggers are active (wipe, death)
   - `groups` - Which groups are active (raid, party)
-  - `content` - All content items for this module
+  - `userAdditions` - Custom content items you've added
+  - `userDeletions` - Default items you've removed
   - `dbVersion` - Database version for tracking updates
 
 ## Architecture
