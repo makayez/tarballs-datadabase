@@ -60,10 +60,10 @@ local defaultSayings = {
     "If at first, you don't succeed, destroy all evidence that you tried.",
     "Stubbornness - because somebody has to be right and it might as well be me.",
     "Never give up. Never stop trying to exceed your limits. We need the entertainment.",
-    "If you never believe in anything, you/ll never be disappointed.",
+    "If you never believe in anything, you'll never be disappointed.",
     "Hope is the first step on the road to disappointment.",
     "I look at the world and see a rainbow of people who all suck in different ways.",
-    "Raids - none of us is as dumb as all of us."
+    "Raids - none of us is as dumb as all of us.",
     "Don't cry because it's over. Smile because if you don't, everyone will ask you what's wrong.",
     "TEAMWORK: A few harmless flakes working together can unleash an avalanche of destruction.",
     "The light at the end of the tunnel has been turned off due to budget cuts.",
