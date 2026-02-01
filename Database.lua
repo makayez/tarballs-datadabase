@@ -99,14 +99,14 @@ function DB:Initialize()
             -- Clear user deletions on version upgrade to get new default content
             -- User additions are preserved
             local deletionCount = #moduleDB.userDeletions
+            local additionCount = #moduleDB.userAdditions
             moduleDB.userDeletions = {}
 
             moduleDB.dbVersion = module.dbVersion
-            if deletionCount > 0 then
-                print(module.name .. ": Updated to version " .. module.dbVersion .. " (restored " .. deletionCount .. " previously removed items)")
-            else
-                print(module.name .. ": Updated to version " .. module.dbVersion)
-            end
+            print(module.name .. ": Updated to version " .. module.dbVersion)
+            print("  - Cleared " .. deletionCount .. " deletions")
+            print("  - Preserved " .. additionCount .. " user additions")
+            print("  - Total content now: " .. #self:GetEffectiveContent(moduleId))
         end
     end
 end
