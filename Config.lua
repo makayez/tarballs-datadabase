@@ -239,13 +239,13 @@ function Config:BuildModuleContent(container, moduleId)
     -- Multi-line text editor
     local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, yOffset)
-    scrollFrame:SetSize(630, 180)
+    scrollFrame:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -10, 65)
 
     local editBox = CreateFrame("EditBox", nil, scrollFrame)
     editBox:SetMultiLine(true)
     editBox:SetAutoFocus(false)
     editBox:SetFontObject("GameFontHighlightSmall")
-    editBox:SetWidth(610)
+    editBox:SetWidth(scrollFrame:GetWidth() - 20)
     editBox:SetMaxLetters(0)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
@@ -268,8 +268,6 @@ function Config:BuildModuleContent(container, moduleId)
     end
 
     container.LoadContent = LoadContent
-
-    yOffset = yOffset - 190
 
     -- Save button and status
     local saveBtn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
