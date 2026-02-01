@@ -1138,7 +1138,7 @@ local defaultJokes = {
 Dadabase.DatabaseManager:RegisterModule("dadjokes", {
     name = "Dad Jokes",
     defaultContent = defaultJokes,
-    dbVersion = 1,
+    dbVersion = 2,
     defaultSettings = {
         enabled = true,
         triggers = {

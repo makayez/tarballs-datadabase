@@ -67,16 +67,15 @@ function DB:Initialize()
                 end
 
                 -- Anything in defaults that's NOT in content = user deletion
+                -- Build set of existing content for fast lookup
+                local contentSet = {}
+                for _, item in ipairs(moduleDB.content) do
+                    contentSet[item] = true
+                end
+
                 moduleDB.userDeletions = {}
                 for _, item in ipairs(module.defaultContent) do
-                    local found = false
-                    for _, userItem in ipairs(moduleDB.content) do
-                        if userItem == item then
-                            found = true
-                            break
-                        end
-                    end
-                    if not found then
+                    if not contentSet[item] then
                         table.insert(moduleDB.userDeletions, item)
                     end
                 end
