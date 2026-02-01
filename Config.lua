@@ -161,10 +161,15 @@ function Config:BuildModuleContent(container, moduleId)
 
     yOffset = yOffset - 40
 
-    -- Triggers section
+    -- Triggers section (left side)
     local triggersLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     triggersLabel:SetPoint("TOPLEFT", 10, yOffset)
     triggersLabel:SetText("Triggers:")
+
+    -- Groups section (right side)
+    local groupsLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    groupsLabel:SetPoint("TOPLEFT", 340, yOffset)
+    groupsLabel:SetText("Enabled for:")
     yOffset = yOffset - 30
 
     -- Wipe trigger
@@ -176,6 +181,17 @@ function Config:BuildModuleContent(container, moduleId)
     wipeCheckbox:SetChecked(moduleDB.triggers.wipe == true)
     wipeCheckbox:SetScript("OnClick", function(self)
         DB:SetModuleTrigger(moduleId, "wipe", self:GetChecked())
+    end)
+
+    -- Raid group (right side, same row)
+    local raidCheckbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
+    raidCheckbox:SetPoint("TOPLEFT", 350, yOffset)
+    raidCheckbox.text = raidCheckbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    raidCheckbox.text:SetPoint("LEFT", raidCheckbox, "RIGHT", 5, 0)
+    raidCheckbox.text:SetText("Raids")
+    raidCheckbox:SetChecked(moduleDB.groups.raid == true)
+    raidCheckbox:SetScript("OnClick", function(self)
+        DB:SetModuleGroup(moduleId, "raid", self:GetChecked())
     end)
     yOffset = yOffset - 30
 
@@ -189,29 +205,10 @@ function Config:BuildModuleContent(container, moduleId)
     deathCheckbox:SetScript("OnClick", function(self)
         DB:SetModuleTrigger(moduleId, "death", self:GetChecked())
     end)
-    yOffset = yOffset - 40
 
-    -- Groups section
-    local groupsLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    groupsLabel:SetPoint("TOPLEFT", 10, yOffset)
-    groupsLabel:SetText("Enabled for:")
-    yOffset = yOffset - 30
-
-    -- Raid group
-    local raidCheckbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
-    raidCheckbox:SetPoint("TOPLEFT", 20, yOffset)
-    raidCheckbox.text = raidCheckbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    raidCheckbox.text:SetPoint("LEFT", raidCheckbox, "RIGHT", 5, 0)
-    raidCheckbox.text:SetText("Raids")
-    raidCheckbox:SetChecked(moduleDB.groups.raid == true)
-    raidCheckbox:SetScript("OnClick", function(self)
-        DB:SetModuleGroup(moduleId, "raid", self:GetChecked())
-    end)
-    yOffset = yOffset - 30
-
-    -- Party group
+    -- Party group (right side, same row)
     local partyCheckbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
-    partyCheckbox:SetPoint("TOPLEFT", 20, yOffset)
+    partyCheckbox:SetPoint("TOPLEFT", 350, yOffset)
     partyCheckbox.text = partyCheckbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     partyCheckbox.text:SetPoint("LEFT", partyCheckbox, "RIGHT", 5, 0)
     partyCheckbox.text:SetText("Parties")
@@ -236,16 +233,30 @@ function Config:BuildModuleContent(container, moduleId)
     instructionsLabel:SetText("Edit the content below (one item per line). Delete lines to remove items, add lines to create new ones.")
     yOffset = yOffset - 25
 
-    -- Multi-line text editor
-    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 10, yOffset)
-    scrollFrame:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -10, 65)
+    -- Multi-line text editor with border
+    local editorBorder = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    editorBorder:SetPoint("TOPLEFT", 5, yOffset)
+    editorBorder:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -5, 65)
+    editorBorder:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    editorBorder:SetBackdropColor(0, 0, 0, 0.8)
+    editorBorder:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
+
+    local scrollFrame = CreateFrame("ScrollFrame", nil, editorBorder, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 10, -10)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
 
     local editBox = CreateFrame("EditBox", nil, scrollFrame)
     editBox:SetMultiLine(true)
     editBox:SetAutoFocus(false)
     editBox:SetFontObject("GameFontHighlightSmall")
-    editBox:SetWidth(scrollFrame:GetWidth() - 20)
+    editBox:SetWidth(600)
     editBox:SetMaxLetters(0)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
