@@ -215,6 +215,20 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
     elseif msg == "version" then
         print("Tarball's Dadabase version " .. Dadabase.VERSION)
 
+    elseif msg == "on" then
+        -- Enable all modules
+        for moduleId, _ in pairs(Dadabase.DatabaseManager.modules) do
+            Dadabase.DatabaseManager:SetModuleEnabled(moduleId, true)
+        end
+        print("Tarball's Dadabase enabled (all modules).")
+
+    elseif msg == "off" then
+        -- Disable all modules
+        for moduleId, _ in pairs(Dadabase.DatabaseManager.modules) do
+            Dadabase.DatabaseManager:SetModuleEnabled(moduleId, false)
+        end
+        print("Tarball's Dadabase disabled (all modules).")
+
     elseif msg == "debug" then
         TarballsDadabaseDB.debug = not TarballsDadabaseDB.debug
         print("Tarball's Dadabase debug mode " .. (TarballsDadabaseDB.debug and "enabled" or "disabled") .. ".")
@@ -267,6 +281,8 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         print("Tarball's Dadabase commands:")
         print("  /dadabase - Open config panel")
         print("  /dadabase version")
+        print("  /dadabase on - Enable all modules")
+        print("  /dadabase off - Disable all modules")
         print("  /dadabase debug")
         print("  /dadabase cooldown <seconds>")
         print("  /dadabase say - Send content to party/raid/say")

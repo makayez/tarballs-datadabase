@@ -32,6 +32,8 @@ World of Warcraft addon that automatically shares content (dad jokes, demotivati
 ```
 /dadabase                    - Open configuration panel
 /dadabase version            - Display addon version
+/dadabase on                 - Enable all modules
+/dadabase off                - Disable all modules
 /dadabase say                - Send content (to party if grouped, raid if in raid, otherwise /say)
 /dadabase guild              - Send content to guild chat
 /dadabase cooldown <seconds> - Set global cooldown between messages (0-60)
