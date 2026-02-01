@@ -27,7 +27,7 @@ end
 
 local function CreateConfigPanel()
     local panel = CreateFrame("Frame", "TarballsDadabaseConfigPanel", UIParent, "BasicFrameTemplateWithInset")
-    panel:SetSize(700, 550)
+    panel:SetSize(700, 600)
     panel:SetPoint("CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)

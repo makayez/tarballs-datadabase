@@ -38,6 +38,14 @@ function DB:Initialize()
     for moduleId, module in pairs(self.modules) do
         local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
+        print("[DEBUG] " .. module.name .. ": Module dbVersion=" .. module.dbVersion .. ", defaultContent=" .. #module.defaultContent)
+
+        if not moduleDB then
+            print("[DEBUG] " .. module.name .. ": First install")
+        else
+            print("[DEBUG] " .. module.name .. ": Existing install, saved dbVersion=" .. (moduleDB.dbVersion or 0) .. ", has content=" .. tostring(moduleDB.content ~= nil))
+        end
+
         if not moduleDB then
             -- First install - create module DB with defaults
             TarballsDadabaseDB.modules[moduleId] = {
@@ -108,6 +116,10 @@ function DB:Initialize()
             print("  - Preserved " .. additionCount .. " user additions")
             print("  - Total content now: " .. #self:GetEffectiveContent(moduleId))
         end
+
+        -- Final debug output
+        local effectiveCount = #self:GetEffectiveContent(moduleId)
+        print("[DEBUG] " .. module.name .. ": Final state - dbVersion=" .. moduleDB.dbVersion .. ", userAdditions=" .. #moduleDB.userAdditions .. ", userDeletions=" .. #moduleDB.userDeletions .. ", effective=" .. effectiveCount)
     end
 end
 
