@@ -224,24 +224,24 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         TarballsDadabaseDB.cooldown = value
         print("Tarball's Dadabase cooldown set to " .. value .. " seconds.")
 
-    elseif msg == "test" then
+    elseif msg == "say" then
         local group = GetCurrentGroup()
-        if not group then
-            print("Not in a group - testing with 'wipe' trigger and 'party' group")
-            group = "party"
+        local content = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
+
+        if IsInRaid() then
+            SendChatMessage(content, "RAID")
+        elseif IsInGroup() then
+            SendChatMessage(content, "PARTY")
+        else
+            SendChatMessage(content, "SAY")
         end
-        local content = Dadabase.DatabaseManager:GetRandomContent("wipe", group)
-        print("Test: " .. content)
 
-    elseif msg == "joke" or msg == "joke say" then
-        local content = Dadabase.DatabaseManager:GetRandomContent("wipe", GetCurrentGroup() or "party")
-        SendChatMessage(content, "SAY")
-
-    elseif msg == "joke guild" then
+    elseif msg == "guild" then
         if not IsInGuild() then
             print("You are not in a guild!")
         else
-            local content = Dadabase.DatabaseManager:GetRandomContent("wipe", GetCurrentGroup() or "party")
+            local group = GetCurrentGroup()
+            local content = Dadabase.DatabaseManager:GetRandomContent("wipe", group or "party")
             SendChatMessage(content, "GUILD")
         end
 
@@ -269,9 +269,8 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         print("  /dadabase version")
         print("  /dadabase debug")
         print("  /dadabase cooldown <seconds>")
-        print("  /dadabase joke - Tell content in say")
-        print("  /dadabase joke guild - Tell content in guild chat")
-        print("  /dadabase test")
+        print("  /dadabase say - Send content to party/raid/say")
+        print("  /dadabase guild - Send content to guild chat")
         print("  /dadabase status")
     end
 end
