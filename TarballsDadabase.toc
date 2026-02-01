@@ -5,5 +5,9 @@
 ## Version: 0.3.0
 ## SavedVariables: TarballsDadabaseDB
 
-Dadabase_Jokes.lua
-TarballsDadabase.lua
+Database.lua
+Core.lua
+Config.lua
+Modules\DadJokes.lua
+Modules\Demotivational.lua
+Modules\GuildQuotes.lua

@@ -1,16 +1,25 @@
 # Tarball's Dadabase
 
-World of Warcraft addon that automatically tells dad jokes in party/raid chat after wipes.
+World of Warcraft addon that automatically shares content (dad jokes, demotivational sayings, guild quotes) in party/raid chat based on configurable triggers.
 
 ## Features
 
-- Automatically tells jokes after party/raid wipes
-- Configurable cooldown between jokes
-- In-game configuration panel
-- Custom joke management (add/remove jokes)
+- **Multiple Content Types:**
+  - Dad Jokes - Classic groaners and puns
+  - Demotivational Sayings - For when things go wrong
+  - Guild Quotes - Your guild's memorable moments
+- **Flexible Triggers:**
+  - Party/Raid wipes
+  - Personal death
+- **Group Targeting:**
+  - Enable separately for raids and parties
+- **Full Content Management:**
+  - Add/remove content for each type
+  - Import new default content on updates
+- In-game configuration panel with tabs for each content type
 - Persistent settings across logins
-- Joke database versioning for updates
-- Manual joke commands for guild/say chat
+- Manual commands for guild/say chat
+- Modular architecture for easy expansion
 
 ## Installation
 
@@ -38,27 +47,67 @@ World of Warcraft addon that automatically tells dad jokes in party/raid chat af
 Access the configuration panel via `/dadabase` or through the WoW Interface Options under Addons.
 
 ### Settings Tab
-- Enable/disable automatic jokes on wipes
-- Adjust cooldown slider (0-60 seconds)
 - View current version
+- Adjust global cooldown slider (0-60 seconds)
 
-### Jokes Tab
-- Browse all jokes in your pool
-- Add custom jokes
-- Remove jokes (default or custom)
+### Content Type Tabs (Dad Jokes, Demotivational, Guild Quotes)
+Each content type has its own tab with:
 
-## Joke Database
+**Enable/Disable:**
+- Master toggle for the content type
 
-On first install, all default jokes are copied to your SavedVariables. You have full control to add, remove, or modify jokes. When the addon is updated with new default jokes, only new jokes are added to your collection, preserving your customizations.
+**Triggers:**
+- Party/Raid wipes - Send content when the group wipes
+- Personal death - Send content when you die
+
+**Groups:**
+- Raids - Enable for raid groups
+- Parties - Enable for party groups
+
+**Content Management:**
+- Browse all content items
+- Add custom content
+- Remove any content (default or custom)
+
+## Content Database
+
+On first install, all default content for each type is copied to your SavedVariables. You have full control to add, remove, or modify content. When the addon is updated with new default content, only new items are added to your collection, preserving your customizations.
+
+**Default Content:**
+- Dad Jokes: 100+ classic dad jokes and puns (enabled by default for wipes in raids/parties)
+- Demotivational: 30 demotivational sayings (disabled by default)
+- Guild Quotes: Empty - populate with your guild's memorable quotes (disabled by default)
+
+**How It Works:**
+When a trigger event occurs (wipe or death), the addon:
+1. Checks which content types are enabled
+2. Filters by the current trigger type and group
+3. Combines all matching content into a pool
+4. Randomly selects one item to send
 
 ## Saved Variables
 
 Settings are stored in `WTF/Account/<account>/SavedVariables/TarballsDadabase.lua`:
-- `enabled` - Enable/disable state (default: true)
-- `cooldown` - Seconds between jokes (default: 10)
-- `jokes` - User's joke pool
-- `customJokes` - Tracks which jokes are custom
-- `jokeDBVersion` - Database version for updates
+- `cooldown` - Global seconds between messages (default: 10)
+- `debug` - Debug mode toggle (default: false)
+- `modules` - Per-module settings:
+  - `enabled` - Module enable/disable
+  - `triggers` - Which triggers are active (wipe, death)
+  - `groups` - Which groups are active (raid, party)
+  - `content` - All content items for this module
+  - `dbVersion` - Database version for tracking updates
+
+## Architecture
+
+The addon uses a modular architecture:
+- `Database.lua` - Generic content management for all modules
+- `Core.lua` - Event handling, triggers, slash commands
+- `Config.lua` - Configuration panel framework
+- `Modules/DadJokes.lua` - Dad jokes module
+- `Modules/Demotivational.lua` - Demotivational sayings module
+- `Modules/GuildQuotes.lua` - Guild quotes module
+
+New content types can be easily added by creating a new module file.
 
 ## Version
 
