@@ -70,7 +70,7 @@ local defaultSayings = {
     "Success is just a few bad decisions away.",
     "It's all downhill from here.",
     "Will it be easy? Nope. Worth it? Absolutely not!",
-    "Happiness is just sadness that hasn’t happened yet."
+    "Happiness is just sadness that hasn't happened yet."
 }
 
 -- Register with Database Manager
