@@ -254,7 +254,15 @@ function Config:BuildModuleContent(container, moduleId)
     -- Populate with current content
     local function LoadContent()
         local content = DB:GetEffectiveContent(moduleId)
-        editBox:SetText(table.concat(content, "\n"))
+        local text = table.concat(content, "\n")
+        editBox:SetText(text)
+
+        -- Calculate height based on content (roughly 14 pixels per line)
+        local numLines = #content
+        local lineHeight = 14
+        local calculatedHeight = math.max(numLines * lineHeight, 180)
+        editBox:SetHeight(calculatedHeight)
+
         editBox:SetCursorPosition(0)
         contentLabel:SetText("Content (" .. #content .. " items)")
     end
