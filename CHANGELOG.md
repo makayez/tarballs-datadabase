@@ -10,8 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Global enable/disable toggle in Settings tab to override all module settings
 - Statistics tracking showing content count and times told per module
 - Sound effects with dropdown selection (9 different WoW sounds available)
+- Test button next to sound effect dropdown to preview selected sound
 - About tab with usage instructions, GitHub link, and thank you message
-- Tooltips on disabled controls explaining addon is globally disabled
+- Tooltips on disabled controls explaining addon is globally disabled or module is disabled
+- Clarifying help text for cooldown setting explaining its behavior
 - Multi-line text editor for content management (one item per line)
 - Save Changes button with visual feedback in configuration UI
 - Reset to Defaults button to clear all user customizations
@@ -24,7 +26,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Migration system for existing SavedVariables data
 
 ### Changed
-- Module tab controls now gray out with tooltips when addon is globally disabled
+- About tab now appears first in the configuration panel (before Settings)
+- All tab buttons widened to 120-130px for better text display
+- Configuration panel height increased to 650px to prevent content overlap
+- Module tab controls now gray out dynamically when module is disabled (in addition to global disable)
+- `/dadabase say` and `/dadabase guild` commands now ignore trigger and group settings, only respecting module enabled state
 - Content storage system now tracks only user changes (additions/deletions) instead of full content arrays
 - Default content is now stored in addon code rather than SavedVariables
 - Configuration UI replaced scrollable list with individual delete buttons with a text editor
@@ -34,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Personal death trigger now works when solo (not just in groups)
 - Personal death trigger no longer requires group checkboxes to be enabled
+- Manual commands (`/dadabase say`, `/dadabase guild`) no longer return "dadabase is empty" when modules are enabled but triggers/groups are not configured
 - Content management now handles large datasets (1000+ items) efficiently
 - New default content in updates automatically appears without restoring deleted items
 - SavedVariables file size reduced significantly for users with default content
