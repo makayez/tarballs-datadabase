@@ -4,6 +4,10 @@ local ADDON_NAME = ...
 Dadabase = Dadabase or {}
 Dadabase.VERSION = "0.3.0"
 
+-- Constants
+local DEFAULT_COOLDOWN = 10
+local MESSAGE_SEND_DELAY = 1
+
 -- ============================================================================
 -- Load Confirmation
 -- ============================================================================
@@ -52,6 +56,7 @@ end
 local frame = CreateFrame("Frame")
 local encounterActive = false
 local lastContentTime = 0
+local pendingMessage = false
 
 -- ============================================================================
 -- Saved Variables (legacy)
@@ -61,7 +66,7 @@ TarballsDadabaseDB = TarballsDadabaseDB or {}
 
 -- Legacy cooldown setting (now global, not per-module)
 if TarballsDadabaseDB.cooldown == nil then
-    TarballsDadabaseDB.cooldown = 10
+    TarballsDadabaseDB.cooldown = DEFAULT_COOLDOWN
 end
 
 -- Debug mode
@@ -106,9 +111,15 @@ local function GetCurrentGroup()
 end
 
 local function SendContent(content, group)
+    if pendingMessage then
+        DebugPrint("Message already pending, skipping")
+        return
+    end
+
+    pendingMessage = true
     DebugPrint("Sending content to " .. (group or "local"))
 
-    C_Timer.After(1, function()
+    C_Timer.After(MESSAGE_SEND_DELAY, function()
         if group == "raid" then
             SendChatMessage(content, "RAID")
         elseif group == "party" then
@@ -117,6 +128,7 @@ local function SendContent(content, group)
             -- Fallback - print locally
             print(content)
         end
+        pendingMessage = false
     end)
 end
 
@@ -184,6 +196,9 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "ADDON_LOADED" then
         local addonName = ...
         if addonName == ADDON_NAME then
+            -- Seed random number generator for better randomness
+            math.randomseed(time())
+
             -- Initialize database
             Dadabase.DatabaseManager:Initialize()
 

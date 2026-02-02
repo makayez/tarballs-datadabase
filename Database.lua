@@ -5,6 +5,9 @@ Dadabase.DatabaseManager = {}
 
 local DB = Dadabase.DatabaseManager
 
+-- Constants
+local ADJECTIVE_COUNT = 100
+
 -- Registered modules
 DB.modules = {}
 
@@ -38,12 +41,14 @@ function DB:Initialize()
     for moduleId, module in pairs(self.modules) do
         local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
-        print("[DEBUG] " .. module.name .. ": Module dbVersion=" .. module.dbVersion .. ", defaultContent=" .. #module.defaultContent)
+        if TarballsDadabaseDB.debug then
+            print("[DEBUG] " .. module.name .. ": Module dbVersion=" .. module.dbVersion .. ", defaultContent=" .. #module.defaultContent)
 
-        if not moduleDB then
-            print("[DEBUG] " .. module.name .. ": First install")
-        else
-            print("[DEBUG] " .. module.name .. ": Existing install, saved dbVersion=" .. (moduleDB.dbVersion or 0) .. ", has content=" .. tostring(moduleDB.content ~= nil))
+            if not moduleDB then
+                print("[DEBUG] " .. module.name .. ": First install")
+            else
+                print("[DEBUG] " .. module.name .. ": Existing install, saved dbVersion=" .. (moduleDB.dbVersion or 0) .. ", has content=" .. tostring(moduleDB.content ~= nil))
+            end
         end
 
         if not moduleDB then
@@ -91,7 +96,9 @@ function DB:Initialize()
                 -- Remove old content field
                 moduleDB.content = nil
 
-                print(module.name .. ": Migrated to new content tracking system")
+                if TarballsDadabaseDB.debug then
+                    print(module.name .. ": Migrated to new content tracking system")
+                end
             end
         end
 
@@ -104,22 +111,25 @@ function DB:Initialize()
 
         -- Update version (new defaults will be automatically included via GetEffectiveContent)
         if moduleDB.dbVersion < module.dbVersion then
-            -- Clear user deletions on version upgrade to get new default content
-            -- User additions are preserved
+            -- Preserve both user deletions and additions
+            -- New default content will appear automatically (not in deletions list)
             local deletionCount = #moduleDB.userDeletions
             local additionCount = #moduleDB.userAdditions
-            moduleDB.userDeletions = {}
+            local oldCount = #self:GetEffectiveContent(moduleId)
 
             moduleDB.dbVersion = module.dbVersion
-            print(module.name .. ": Updated to version " .. module.dbVersion)
-            print("  - Cleared " .. deletionCount .. " deletions")
-            print("  - Preserved " .. additionCount .. " user additions")
-            print("  - Total content now: " .. #self:GetEffectiveContent(moduleId))
-        end
 
-        -- Final debug output
-        local effectiveCount = #self:GetEffectiveContent(moduleId)
-        print("[DEBUG] " .. module.name .. ": Final state - dbVersion=" .. moduleDB.dbVersion .. ", userAdditions=" .. #moduleDB.userAdditions .. ", userDeletions=" .. #moduleDB.userDeletions .. ", effective=" .. effectiveCount)
+            local newCount = #self:GetEffectiveContent(moduleId)
+            local addedCount = newCount - oldCount
+
+            if TarballsDadabaseDB.debug then
+                print(module.name .. ": Updated to version " .. module.dbVersion)
+                print("  - Preserved " .. deletionCount .. " user deletions")
+                print("  - Preserved " .. additionCount .. " user additions")
+                print("  - Added " .. addedCount .. " new default items")
+                print("  - Total content now: " .. newCount)
+            end
+        end
     end
 end
 
@@ -367,16 +377,37 @@ function DB:SetModuleGroup(moduleId, group, enabled)
 end
 
 function DB:SetEffectiveContent(moduleId, newContent)
+    -- Validate inputs
+    if type(moduleId) ~= "string" then
+        error("SetEffectiveContent: moduleId must be a string, got " .. type(moduleId))
+        return
+    end
+
+    if type(newContent) ~= "table" then
+        error("SetEffectiveContent: newContent must be a table, got " .. type(newContent))
+        return
+    end
+
     local module = self.modules[moduleId]
     local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
-    if not module or not moduleDB then
+    if not module then
+        error("SetEffectiveContent: module not found: " .. tostring(moduleId))
+        return
+    end
+
+    if not moduleDB then
+        error("SetEffectiveContent: moduleDB not initialized for: " .. tostring(moduleId))
         return
     end
 
     -- Build set of new content for fast lookup
     local newContentSet = {}
     for _, item in ipairs(newContent) do
+        if type(item) ~= "string" then
+            error("SetEffectiveContent: all content items must be strings, found " .. type(item))
+            return
+        end
         newContentSet[item] = true
     end
 

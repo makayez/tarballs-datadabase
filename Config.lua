@@ -6,6 +6,15 @@ Dadabase.Config = {}
 local Config = Dadabase.Config
 local DB = Dadabase.DatabaseManager
 
+-- Constants
+local CONFIG_PANEL_WIDTH = 700
+local CONFIG_PANEL_HEIGHT = 650
+local TAB_BUTTON_WIDTH_SMALL = 120
+local TAB_BUTTON_WIDTH_LARGE = 130
+local MAX_CHAT_MESSAGE_LENGTH = 255
+local EDITOR_MIN_HEIGHT = 180
+local EDITOR_LINE_HEIGHT = 14
+
 -- Registered module config tabs
 Config.moduleTabs = {}
 
@@ -27,7 +36,7 @@ end
 
 local function CreateConfigPanel()
     local panel = CreateFrame("Frame", "TarballsDadabaseConfigPanel", UIParent, "BasicFrameTemplateWithInset")
-    panel:SetSize(700, 650)
+    panel:SetSize(CONFIG_PANEL_WIDTH, CONFIG_PANEL_HEIGHT)
     panel:SetPoint("CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)
@@ -63,7 +72,7 @@ local function CreateConfigPanel()
 
     -- About Tab (first tab)
     local aboutTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    aboutTabBtn:SetSize(120, 25)
+    aboutTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, 25)
     aboutTabBtn:SetPoint("TOPLEFT", 20, -35)
     aboutTabBtn:SetText("About")
     aboutTabBtn:SetScript("OnClick", function() ShowTab(1) end)
@@ -144,7 +153,7 @@ local function CreateConfigPanel()
 
     -- Settings Tab (second tab)
     local settingsTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    settingsTabBtn:SetSize(120, 25)
+    settingsTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, 25)
     settingsTabBtn:SetPoint("LEFT", aboutTabBtn, "RIGHT", 5, 0)
     settingsTabBtn:SetText("Settings")
     settingsTabBtn:SetScript("OnClick", function() ShowTab(2) end)
@@ -214,11 +223,11 @@ local function CreateConfigPanel()
 
     local function UpdateStats()
         local stats = GetModuleStats()
-        local text = ""
+        local lines = {}
         for moduleId, stat in pairs(stats) do
-            text = text .. stat.name .. ": " .. stat.count .. " items, " .. stat.told .. " told\n"
+            table.insert(lines, stat.name .. ": " .. stat.count .. " items, " .. stat.told .. " told")
         end
-        statsText:SetText(text)
+        statsText:SetText(table.concat(lines, "\n"))
     end
 
     UpdateStats()
@@ -342,7 +351,7 @@ local function CreateConfigPanel()
     -- Module Tabs
     for _, moduleTab in ipairs(Config.moduleTabs) do
         local tabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-        tabBtn:SetSize(130, 25)
+        tabBtn:SetSize(TAB_BUTTON_WIDTH_LARGE, 25)
         tabBtn:SetPoint("LEFT", tabButtons[#tabButtons], "RIGHT", 5, 0)
 
         tabBtn:SetText(moduleTab.name)
@@ -510,10 +519,9 @@ function Config:BuildModuleContent(container, moduleId)
         editBox:SetText(text)
         originalText = text
 
-        -- Calculate height based on content (roughly 14 pixels per line)
+        -- Calculate height based on content
         local numLines = #content
-        local lineHeight = 14
-        local calculatedHeight = math.max(numLines * lineHeight, 180)
+        local calculatedHeight = math.max(numLines * EDITOR_LINE_HEIGHT, EDITOR_MIN_HEIGHT)
         editBox:SetHeight(calculatedHeight)
 
         editBox:SetCursorPosition(0)
@@ -538,12 +546,23 @@ function Config:BuildModuleContent(container, moduleId)
     saveBtn:SetScript("OnClick", function()
         local text = editBox:GetText()
         local newContent = {}
+        local skippedLines = 0
 
         -- Parse lines (split by newline)
         for line in text:gmatch("[^\r\n]+") do
             line = line:trim()
             if line ~= "" then
-                table.insert(newContent, line)
+                -- Validate line length (WoW chat message limit)
+                if #line > MAX_CHAT_MESSAGE_LENGTH then
+                    skippedLines = skippedLines + 1
+                else
+                    -- Sanitize input - remove color codes and hyperlinks
+                    line = line:gsub("|c%x%x%x%x%x%x%x%x", "")  -- Remove color codes
+                    line = line:gsub("|H.-|h", "")  -- Remove hyperlinks
+                    line = line:gsub("|r", "")  -- Remove color resets
+                    line = line:gsub("|T.-|t", "")  -- Remove textures
+                    table.insert(newContent, line)
+                end
             end
         end
 
@@ -554,7 +573,11 @@ function Config:BuildModuleContent(container, moduleId)
         originalText = text
 
         -- Show feedback
-        statusLabel:SetText("Saved! (" .. #newContent .. " items)")
+        local message = "Saved! (" .. #newContent .. " items)"
+        if skippedLines > 0 then
+            message = message .. " (" .. skippedLines .. " lines too long, skipped)"
+        end
+        statusLabel:SetText(message)
         contentLabel:SetText("Content (" .. #newContent .. " items)")
         saveBtn:Disable()
 
@@ -582,14 +605,14 @@ function Config:BuildModuleContent(container, moduleId)
 
     -- Store all controls that should be disabled when addon or module is disabled
     -- Note: enableCheckbox should always be enabled (even when global is off)
+    -- Note: editBox should remain enabled so users can add content before enabling module
     local moduleControls = {
         wipeCheckbox,
         deathCheckbox,
         raidCheckbox,
         partyCheckbox,
         saveBtn,
-        resetBtn,
-        editBox
+        resetBtn
     }
 
     local allControls = {
