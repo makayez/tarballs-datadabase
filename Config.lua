@@ -137,7 +137,7 @@ local function CreateConfigPanel()
     local githubLink = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     githubLink:SetPoint("TOPLEFT", 30, aboutYOffset)
     githubLink:SetJustifyH("LEFT")
-    githubLink:SetText("https://github.com/makayez/tarballs-datadabase")
+    githubLink:SetText("https://github.com/makayez/tarballs-dadabase")
     aboutYOffset = aboutYOffset - 50
 
     local thanksTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
