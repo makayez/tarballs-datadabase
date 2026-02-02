@@ -81,12 +81,12 @@ Dadabase.DatabaseManager:RegisterModule("demotivational", {
     defaultSettings = {
         enabled = false,
         triggers = {
-            wipe = false,
+            wipe = true,
             death = false
         },
         groups = {
-            raid = false,
-            party = false
+            raid = true,
+            party = true
         }
     }
 })

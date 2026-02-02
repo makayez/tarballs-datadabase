@@ -379,9 +379,6 @@ function Config:BuildModuleContent(container, moduleId)
     enableCheckbox.text:SetPoint("LEFT", enableCheckbox, "RIGHT", 5, 0)
     enableCheckbox.text:SetText("Enable " .. module.name)
     enableCheckbox:SetChecked(moduleDB.enabled)
-    enableCheckbox:SetScript("OnClick", function(self)
-        DB:SetModuleEnabled(moduleId, self:GetChecked())
-    end)
 
     yOffset = yOffset - 40
 
@@ -555,8 +552,19 @@ function Config:BuildModuleContent(container, moduleId)
         end)
     end)
 
-    -- Store all controls that should be disabled when addon is globally disabled
-    local controls = {
+    -- Store all controls that should be disabled when addon or module is disabled
+    -- Note: enableCheckbox should always be enabled (even when global is off)
+    local moduleControls = {
+        wipeCheckbox,
+        deathCheckbox,
+        raidCheckbox,
+        partyCheckbox,
+        saveBtn,
+        resetBtn,
+        editBox
+    }
+
+    local allControls = {
         enableCheckbox,
         wipeCheckbox,
         deathCheckbox,
@@ -567,12 +575,27 @@ function Config:BuildModuleContent(container, moduleId)
         editBox
     }
 
-    -- Function to refresh control states based on global enabled
+    -- Function to refresh control states based on global and module enabled
     local function RefreshControls()
         local globalEnabled = TarballsDadabaseDB.globalEnabled
+        local moduleEnabled = moduleDB.enabled
 
-        for _, control in ipairs(controls) do
-            if globalEnabled then
+        -- Handle enableCheckbox separately - only disabled by global setting
+        if globalEnabled then
+            enableCheckbox:Enable()
+            if enableCheckbox.text then
+                enableCheckbox.text:SetTextColor(1, 1, 1)
+            end
+        else
+            enableCheckbox:Disable()
+            if enableCheckbox.text then
+                enableCheckbox.text:SetTextColor(0.5, 0.5, 0.5)
+            end
+        end
+
+        -- Handle other module controls - disabled by either global or module setting
+        for _, control in ipairs(moduleControls) do
+            if globalEnabled and moduleEnabled then
                 control:Enable()
                 if control.text then
                     control.text:SetTextColor(1, 1, 1)
@@ -585,13 +608,24 @@ function Config:BuildModuleContent(container, moduleId)
             end
         end
 
-        -- Add/remove tooltip handlers
-        for _, control in ipairs(controls) do
+        -- Add/remove tooltip handlers for all controls
+        for _, control in ipairs(allControls) do
             if not globalEnabled then
                 control:SetScript("OnEnter", function(self)
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                     GameTooltip:SetText("Addon Disabled", 1, 0, 0)
                     GameTooltip:AddLine("Enable the addon in the Settings tab to use this feature.", 1, 1, 1, true)
+                    GameTooltip:Show()
+                end)
+                control:SetScript("OnLeave", function(self)
+                    GameTooltip:Hide()
+                end)
+            elseif control ~= enableCheckbox and not moduleEnabled then
+                -- Module is disabled but addon is enabled
+                control:SetScript("OnEnter", function(self)
+                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                    GameTooltip:SetText("Module Disabled", 1, 0.5, 0)
+                    GameTooltip:AddLine("Enable " .. module.name .. " to use this feature.", 1, 1, 1, true)
                     GameTooltip:Show()
                 end)
                 control:SetScript("OnLeave", function(self)
@@ -603,6 +637,12 @@ function Config:BuildModuleContent(container, moduleId)
             end
         end
     end
+
+    -- Hook up enable checkbox to refresh controls
+    enableCheckbox:SetScript("OnClick", function(self)
+        DB:SetModuleEnabled(moduleId, self:GetChecked())
+        RefreshControls()
+    end)
 
     container.RefreshControls = RefreshControls
     RefreshControls()
