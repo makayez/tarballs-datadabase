@@ -543,7 +543,11 @@ function Config:BuildModuleContent(container, moduleId)
     editBox:SetFontObject("GameFontHighlightSmall")
     editBox:SetWidth(EDITOR_WIDTH)
     editBox:SetMaxLetters(0)
+    editBox:SetEnabled(true)
+    editBox:EnableMouse(true)
+    editBox:EnableKeyboard(true)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    editBox:SetScript("OnMouseDown", function(self) self:SetFocus() end)
 
     scrollFrame:SetScrollChild(editBox)
 
@@ -576,6 +580,7 @@ function Config:BuildModuleContent(container, moduleId)
         editBox:SetCursorPosition(0)
         contentLabel:SetText("Content (" .. #content .. " items)")
         saveBtn:Disable()
+        editBox:Enable()  -- Ensure editBox stays enabled
     end
 
     container.LoadContent = LoadContent
@@ -719,6 +724,9 @@ function Config:BuildModuleContent(container, moduleId)
             enableCheckbox.text:SetTextColor(1, 1, 1)
         end
 
+        -- EditBox is always enabled (users can add content before enabling module)
+        editBox:Enable()
+
         -- Handle other module controls - disabled by either global or module setting
         for _, control in ipairs(moduleControls) do
             if globalEnabled and moduleEnabled then
@@ -769,6 +777,10 @@ function Config:BuildModuleContent(container, moduleId)
 
     container.RefreshControls = RefreshControls
     RefreshControls()
+
+    -- Ensure editBox is always enabled for typing (even when module/global disabled)
+    editBox:Enable()
+
     LoadContent()
 end
 
