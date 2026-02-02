@@ -11,6 +11,9 @@ local ADJECTIVE_COUNT = 100
 -- Registered modules
 DB.modules = {}
 
+-- Content cache for performance (especially with 1100+ jokes)
+DB.contentCache = {}
+
 -- ============================================================================
 -- Module Registration
 -- ============================================================================
@@ -111,6 +114,9 @@ function DB:Initialize()
 
         -- Update version (new defaults will be automatically included via GetEffectiveContent)
         if moduleDB.dbVersion < module.dbVersion then
+            -- Invalidate cache before checking counts
+            self.contentCache[moduleId] = nil
+
             -- Preserve both user deletions and additions
             -- New default content will appear automatically (not in deletions list)
             local deletionCount = #moduleDB.userDeletions
@@ -118,6 +124,9 @@ function DB:Initialize()
             local oldCount = #self:GetEffectiveContent(moduleId)
 
             moduleDB.dbVersion = module.dbVersion
+
+            -- Invalidate cache again after version change
+            self.contentCache[moduleId] = nil
 
             local newCount = #self:GetEffectiveContent(moduleId)
             local addedCount = newCount - oldCount
@@ -138,6 +147,11 @@ end
 -- ============================================================================
 
 function DB:GetEffectiveContent(moduleId)
+    -- Return cached content if available
+    if self.contentCache[moduleId] then
+        return self.contentCache[moduleId]
+    end
+
     local module = self.modules[moduleId]
     local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
@@ -164,6 +178,9 @@ function DB:GetEffectiveContent(moduleId)
     for _, item in ipairs(moduleDB.userAdditions) do
         table.insert(effective, item)
     end
+
+    -- Cache the result for future calls
+    self.contentCache[moduleId] = effective
 
     return effective
 end
@@ -434,12 +451,17 @@ function DB:SetEffectiveContent(moduleId, newContent)
             table.insert(moduleDB.userDeletions, item)
         end
     end
+
+    -- Invalidate cache since content changed
+    self.contentCache[moduleId] = nil
 end
 
 -- Legacy function for backward compatibility
 function DB:AddContent(moduleId, content)
     if TarballsDadabaseDB.modules[moduleId] then
         table.insert(TarballsDadabaseDB.modules[moduleId].userAdditions, content)
+        -- Invalidate cache
+        self.contentCache[moduleId] = nil
     end
 end
 
@@ -472,6 +494,9 @@ function DB:RemoveContent(moduleId, index)
                 end
             end
         end
+
+        -- Invalidate cache since content changed
+        self.contentCache[moduleId] = nil
     end
 end
 

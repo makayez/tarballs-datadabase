@@ -387,6 +387,32 @@ function Config:BuildModuleContent(container, moduleId)
 
     local yOffset = -10
 
+    -- Global disabled warning (shown when addon is globally disabled)
+    local warningFrame = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    warningFrame:SetPoint("TOPLEFT", 10, yOffset)
+    warningFrame:SetPoint("TOPRIGHT", -10, yOffset)
+    warningFrame:SetHeight(40)
+    warningFrame:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 16,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    warningFrame:SetBackdropColor(0.8, 0.2, 0.2, 0.3)
+    warningFrame:SetBackdropBorderColor(0.8, 0.2, 0.2, 1)
+
+    local warningText = warningFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    warningText:SetPoint("CENTER")
+    warningText:SetTextColor(1, 0.3, 0.3)
+    warningText:SetText("⚠ Addon is globally disabled in Settings tab - this module will not trigger ⚠")
+
+    -- Hide warning by default, will show if global disabled
+    warningFrame:Hide()
+
+    yOffset = yOffset - 50
+
     -- Enable checkbox
     local enableCheckbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
     enableCheckbox:SetPoint("TOPLEFT", 10, yOffset)
@@ -631,17 +657,17 @@ function Config:BuildModuleContent(container, moduleId)
         local globalEnabled = TarballsDadabaseDB.globalEnabled
         local moduleEnabled = moduleDB.enabled
 
-        -- Handle enableCheckbox separately - only disabled by global setting
+        -- Show/hide warning based on global enabled state
         if globalEnabled then
-            enableCheckbox:Enable()
-            if enableCheckbox.text then
-                enableCheckbox.text:SetTextColor(1, 1, 1)
-            end
+            warningFrame:Hide()
         else
-            enableCheckbox:Disable()
-            if enableCheckbox.text then
-                enableCheckbox.text:SetTextColor(0.5, 0.5, 0.5)
-            end
+            warningFrame:Show()
+        end
+
+        -- Enable checkbox is always enabled (allows configuration when global is disabled)
+        enableCheckbox:Enable()
+        if enableCheckbox.text then
+            enableCheckbox.text:SetTextColor(1, 1, 1)
         end
 
         -- Handle other module controls - disabled by either global or module setting
@@ -659,9 +685,14 @@ function Config:BuildModuleContent(container, moduleId)
             end
         end
 
-        -- Add/remove tooltip handlers for all controls
+        -- Add/remove tooltip handlers for all controls (except enableCheckbox)
         for _, control in ipairs(allControls) do
-            if not globalEnabled then
+            if control == enableCheckbox then
+                -- Enable checkbox has no tooltip (always enabled)
+                control:SetScript("OnEnter", nil)
+                control:SetScript("OnLeave", nil)
+            elseif not globalEnabled then
+                -- Global disabled tooltip for other controls
                 control:SetScript("OnEnter", function(self)
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                     GameTooltip:SetText("Addon Disabled", 1, 0, 0)
@@ -671,7 +702,7 @@ function Config:BuildModuleContent(container, moduleId)
                 control:SetScript("OnLeave", function(self)
                     GameTooltip:Hide()
                 end)
-            elseif control ~= enableCheckbox and not moduleEnabled then
+            elseif not moduleEnabled then
                 -- Module is disabled but addon is enabled
                 control:SetScript("OnEnter", function(self)
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")

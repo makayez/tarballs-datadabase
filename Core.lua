@@ -210,7 +210,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
             -- Print load message
             local contentCount = Dadabase.DatabaseManager:GetTotalContentCount()
             local contentTypeName = GetRandomContentTypeName()
-            print("Tarball's Dadabase v" .. Dadabase.VERSION .. " loaded: " .. contentCount .. " " .. contentTypeName .. " loaded.")
+            print("Tarball's Dadabase v" .. Dadabase.VERSION .. " loaded: " .. contentCount .. " " .. contentTypeName .. " loaded. Type /dadabase to configure.")
 
             DebugPrint("Dadabase ADDON_LOADED")
             DebugPrint("  Total content: " .. contentCount)
