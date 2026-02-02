@@ -27,7 +27,7 @@ end
 
 local function CreateConfigPanel()
     local panel = CreateFrame("Frame", "TarballsDadabaseConfigPanel", UIParent, "BasicFrameTemplateWithInset")
-    panel:SetSize(700, 600)
+    panel:SetSize(700, 650)
     panel:SetPoint("CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)
@@ -51,7 +51,7 @@ local function CreateConfigPanel()
                 tab:Show()
                 tabButtons[i]:SetAlpha(1.0)
                 -- Refresh stats when showing settings tab
-                if i == 1 and tab.UpdateStats then
+                if i == 2 and tab.UpdateStats then
                     tab:UpdateStats()
                 end
             else
@@ -61,12 +61,93 @@ local function CreateConfigPanel()
         end
     end
 
-    -- Settings Tab
+    -- About Tab (first tab)
+    local aboutTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    aboutTabBtn:SetSize(120, 25)
+    aboutTabBtn:SetPoint("TOPLEFT", 20, -35)
+    aboutTabBtn:SetText("About")
+    aboutTabBtn:SetScript("OnClick", function() ShowTab(1) end)
+    table.insert(tabButtons, aboutTabBtn)
+
+    local aboutTab = CreateFrame("Frame", nil, panel)
+    aboutTab:SetPoint("TOPLEFT", 20, -70)
+    aboutTab:SetPoint("BOTTOMRIGHT", -20, 20)
+    table.insert(tabs, aboutTab)
+
+    -- Build about tab content
+    local aboutYOffset = -10
+
+    local aboutTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+    aboutTitle:SetPoint("TOP", 0, aboutYOffset)
+    aboutTitle:SetText("Tarball's Dadabase")
+    aboutYOffset = aboutYOffset - 40
+
+    local aboutDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    aboutDesc:SetPoint("TOPLEFT", 20, aboutYOffset)
+    aboutDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
+    aboutDesc:SetJustifyH("LEFT")
+    aboutDesc:SetSpacing(3)
+    aboutDesc:SetText(
+        "A World of Warcraft addon that shares uplifting dad jokes, motivational quotes, " ..
+        "and memorable guild sayings when your raid wipes or when you experience a personal death.\n\n" ..
+        "Perfect for lightening the mood after a difficult encounter!"
+    )
+    aboutYOffset = aboutYOffset - 100
+
+    local howToTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    howToTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
+    howToTitle:SetText("How to Add Your Own Content")
+    aboutYOffset = aboutYOffset - 30
+
+    local howToDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    howToDesc:SetPoint("TOPLEFT", 30, aboutYOffset)
+    howToDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
+    howToDesc:SetJustifyH("LEFT")
+    howToDesc:SetSpacing(3)
+    howToDesc:SetText(
+        "1. Navigate to the Dad Jokes, Demotivational, or Guild Quotes tabs\n" ..
+        "2. Scroll to the content editor at the bottom\n" ..
+        "3. Add your own jokes or quotes (one per line)\n" ..
+        "4. Delete any lines you don't want\n" ..
+        "5. Click 'Save Changes' to update\n\n" ..
+        "Your custom additions will be preserved even when the addon updates with new default content!"
+    )
+    aboutYOffset = aboutYOffset - 150
+
+    local githubTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    githubTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
+    githubTitle:SetText("GitHub Repository")
+    aboutYOffset = aboutYOffset - 30
+
+    local githubLink = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    githubLink:SetPoint("TOPLEFT", 30, aboutYOffset)
+    githubLink:SetJustifyH("LEFT")
+    githubLink:SetText("https://github.com/makayez/tarballs-datadabase")
+    aboutYOffset = aboutYOffset - 50
+
+    local thanksTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    thanksTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
+    thanksTitle:SetText("Thank You!")
+    aboutYOffset = aboutYOffset - 30
+
+    local thanksDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    thanksDesc:SetPoint("TOPLEFT", 30, aboutYOffset)
+    thanksDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
+    thanksDesc:SetJustifyH("LEFT")
+    thanksDesc:SetSpacing(3)
+    thanksDesc:SetText(
+        "Thank you for using Tarball's Dadabase! I hope this addon brings a smile to your " ..
+        "raid team's faces during those challenging progression nights.\n\n" ..
+        "May your wipes be few and your dad jokes be legendary!\n\n" ..
+        "- Tarball-Whisperwind"
+    )
+
+    -- Settings Tab (second tab)
     local settingsTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    settingsTabBtn:SetSize(100, 25)
-    settingsTabBtn:SetPoint("TOPLEFT", 20, -35)
+    settingsTabBtn:SetSize(120, 25)
+    settingsTabBtn:SetPoint("LEFT", aboutTabBtn, "RIGHT", 5, 0)
     settingsTabBtn:SetText("Settings")
-    settingsTabBtn:SetScript("OnClick", function() ShowTab(1) end)
+    settingsTabBtn:SetScript("OnClick", function() ShowTab(2) end)
     table.insert(tabButtons, settingsTabBtn)
 
     local settingsTab = CreateFrame("Frame", nil, panel)
@@ -155,6 +236,13 @@ local function CreateConfigPanel()
     local cooldownLabel = settingsTab:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     cooldownLabel:SetPoint("TOPLEFT", 10, yOffset)
     cooldownLabel:SetText("Global cooldown between messages:")
+    yOffset = yOffset - 20
+
+    local cooldownHelp = settingsTab:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    cooldownHelp:SetPoint("TOPLEFT", 10, yOffset)
+    cooldownHelp:SetPoint("TOPRIGHT", -10, yOffset)
+    cooldownHelp:SetJustifyH("LEFT")
+    cooldownHelp:SetText("Prevents messages from being sent if one was recently sent within the specified time.")
     yOffset = yOffset - 30
 
     local cooldownSlider = CreateFrame("Slider", nil, settingsTab, "OptionsSliderTemplate")
@@ -236,91 +324,19 @@ local function CreateConfigPanel()
     end
     UIDropDownMenu_SetText(soundDropdown, currentSound)
 
-    -- About Tab
-    local aboutTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    aboutTabBtn:SetSize(100, 25)
-    aboutTabBtn:SetPoint("LEFT", settingsTabBtn, "RIGHT", 5, 0)
-    aboutTabBtn:SetText("About")
-    aboutTabBtn:SetScript("OnClick", function() ShowTab(2) end)
-    table.insert(tabButtons, aboutTabBtn)
-
-    local aboutTab = CreateFrame("Frame", nil, panel)
-    aboutTab:SetPoint("TOPLEFT", 20, -70)
-    aboutTab:SetPoint("BOTTOMRIGHT", -20, 20)
-    table.insert(tabs, aboutTab)
-
-    -- Build about tab content
-    local aboutYOffset = -10
-
-    local aboutTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    aboutTitle:SetPoint("TOP", 0, aboutYOffset)
-    aboutTitle:SetText("Tarball's Dadabase")
-    aboutYOffset = aboutYOffset - 40
-
-    local aboutDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    aboutDesc:SetPoint("TOPLEFT", 20, aboutYOffset)
-    aboutDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
-    aboutDesc:SetJustifyH("LEFT")
-    aboutDesc:SetSpacing(3)
-    aboutDesc:SetText(
-        "A World of Warcraft addon that shares uplifting dad jokes, motivational quotes, " ..
-        "and memorable guild sayings when your raid wipes or when you experience a personal death.\n\n" ..
-        "Perfect for lightening the mood after a difficult encounter!"
-    )
-    aboutYOffset = aboutYOffset - 100
-
-    local howToTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    howToTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
-    howToTitle:SetText("How to Add Your Own Content")
-    aboutYOffset = aboutYOffset - 30
-
-    local howToDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    howToDesc:SetPoint("TOPLEFT", 30, aboutYOffset)
-    howToDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
-    howToDesc:SetJustifyH("LEFT")
-    howToDesc:SetSpacing(3)
-    howToDesc:SetText(
-        "1. Navigate to the Dad Jokes, Demotivational, or Guild Quotes tabs\n" ..
-        "2. Scroll to the content editor at the bottom\n" ..
-        "3. Add your own jokes or quotes (one per line)\n" ..
-        "4. Delete any lines you don't want\n" ..
-        "5. Click 'Save Changes' to update\n\n" ..
-        "Your custom additions will be preserved even when the addon updates with new default content!"
-    )
-    aboutYOffset = aboutYOffset - 150
-
-    local githubTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    githubTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
-    githubTitle:SetText("GitHub Repository")
-    aboutYOffset = aboutYOffset - 30
-
-    local githubLink = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    githubLink:SetPoint("TOPLEFT", 30, aboutYOffset)
-    githubLink:SetJustifyH("LEFT")
-    githubLink:SetText("https://github.com/yourusername/tarballs-dadabase")
-    aboutYOffset = aboutYOffset - 50
-
-    local thanksTitle = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    thanksTitle:SetPoint("TOPLEFT", 20, aboutYOffset)
-    thanksTitle:SetText("Thank You!")
-    aboutYOffset = aboutYOffset - 30
-
-    local thanksDesc = aboutTab:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    thanksDesc:SetPoint("TOPLEFT", 30, aboutYOffset)
-    thanksDesc:SetPoint("TOPRIGHT", -20, aboutYOffset)
-    thanksDesc:SetJustifyH("LEFT")
-    thanksDesc:SetSpacing(3)
-    thanksDesc:SetText(
-        "Thank you for using Tarball's Dadabase! I hope this addon brings a smile to your " ..
-        "raid team's faces during those challenging progression nights.\n\n" ..
-        "May your wipes be few and your dad jokes be legendary!\n\n" ..
-        "- Tarball-Whisperwind"
-    )
+    -- Test sound button
+    local testSoundBtn = CreateFrame("Button", nil, settingsTab, "UIPanelButtonTemplate")
+    testSoundBtn:SetSize(60, 25)
+    testSoundBtn:SetPoint("LEFT", soundDropdown, "RIGHT", -15, -2)
+    testSoundBtn:SetText("Test")
+    testSoundBtn:SetScript("OnClick", function()
+        PlaySound(TarballsDadabaseDB.soundEffect)
+    end)
 
     -- Module Tabs
     for _, moduleTab in ipairs(Config.moduleTabs) do
         local tabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-        tabBtn:SetSize(100, 25)
+        tabBtn:SetSize(130, 25)
         tabBtn:SetPoint("LEFT", tabButtons[#tabButtons], "RIGHT", 5, 0)
 
         tabBtn:SetText(moduleTab.name)
@@ -337,7 +353,7 @@ local function CreateConfigPanel()
         moduleTab.buildContent(moduleTabFrame, moduleTab.moduleId)
     end
 
-    -- Show settings tab by default
+    -- Show about tab by default
     ShowTab(1)
 
     return panel
