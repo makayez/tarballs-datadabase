@@ -7,6 +7,7 @@ Dadabase.VERSION = "0.3.0"
 -- Constants
 local DEFAULT_COOLDOWN = 10
 local MESSAGE_SEND_DELAY = 1
+local MAX_CHAT_MESSAGE_LENGTH = 255
 
 -- ============================================================================
 -- Load Confirmation
@@ -57,6 +58,7 @@ local frame = CreateFrame("Frame")
 local encounterActive = false
 local lastContentTime = 0
 local pendingMessage = false
+local lastManualCommandTime = 0
 
 -- ============================================================================
 -- Saved Variables (legacy)
@@ -176,7 +178,10 @@ local function TriggerContent(triggerType)
 
         -- Play sound effect if enabled
         if TarballsDadabaseDB.soundEnabled and TarballsDadabaseDB.soundEffect then
-            PlaySound(TarballsDadabaseDB.soundEffect)
+            local success, err = pcall(PlaySound, TarballsDadabaseDB.soundEffect)
+            if not success then
+                DebugPrint("Failed to play sound: " .. tostring(err))
+            end
         end
     else
         DebugPrint("  BLOCKED: No matching content found")
@@ -291,9 +296,23 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         print("Tarball's Dadabase cooldown set to " .. value .. " seconds.")
 
     elseif msg == "say" then
+        -- Rate limiting for manual commands (3 second cooldown)
+        local now = GetTime()
+        if now - lastManualCommandTime < 3 then
+            print("Please wait " .. math.ceil(3 - (now - lastManualCommandTime)) .. " second(s) before using this command again.")
+            return
+        end
+        lastManualCommandTime = now
+
         local content, moduleId = Dadabase.DatabaseManager:GetRandomContent(nil, nil, true)
         local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
         local message = prefix .. content
+
+        -- Validate message length
+        if #message > MAX_CHAT_MESSAGE_LENGTH then
+            print("Message too long (" .. #message .. " chars), truncating to " .. MAX_CHAT_MESSAGE_LENGTH)
+            message = message:sub(1, MAX_CHAT_MESSAGE_LENGTH)
+        end
 
         if IsInRaid() then
             SendChatMessage(message, "RAID")
@@ -314,37 +333,63 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
     elseif msg == "guild" then
         if not IsInGuild() then
             print("You are not in a guild!")
-        else
-            local content, moduleId = Dadabase.DatabaseManager:GetRandomContent(nil, nil, true)
-            local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
-            SendChatMessage(prefix .. content, "GUILD")
+            return
+        end
 
-            -- Track statistics
-            if moduleId then
-                if not TarballsDadabaseDB.stats[moduleId] then
-                    TarballsDadabaseDB.stats[moduleId] = 0
-                end
-                TarballsDadabaseDB.stats[moduleId] = TarballsDadabaseDB.stats[moduleId] + 1
+        -- Rate limiting for manual commands (3 second cooldown)
+        local now = GetTime()
+        if now - lastManualCommandTime < 3 then
+            print("Please wait " .. math.ceil(3 - (now - lastManualCommandTime)) .. " second(s) before using this command again.")
+            return
+        end
+        lastManualCommandTime = now
+
+        local content, moduleId = Dadabase.DatabaseManager:GetRandomContent(nil, nil, true)
+        local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
+        local message = prefix .. content
+
+        -- Validate message length
+        if #message > MAX_CHAT_MESSAGE_LENGTH then
+            print("Message too long (" .. #message .. " chars), truncating to " .. MAX_CHAT_MESSAGE_LENGTH)
+            message = message:sub(1, MAX_CHAT_MESSAGE_LENGTH)
+        end
+
+        SendChatMessage(message, "GUILD")
+
+        -- Track statistics
+        if moduleId then
+            if not TarballsDadabaseDB.stats[moduleId] then
+                TarballsDadabaseDB.stats[moduleId] = 0
             end
+            TarballsDadabaseDB.stats[moduleId] = TarballsDadabaseDB.stats[moduleId] + 1
         end
 
     elseif msg == "status" then
-        print("Tarball's Dadabase Status:")
-        print("  Version: " .. Dadabase.VERSION)
-        print("  Debug: " .. tostring(TarballsDadabaseDB.debug))
-        print("  Cooldown: " .. TarballsDadabaseDB.cooldown .. " seconds")
-        print("  Total content: " .. Dadabase.DatabaseManager:GetTotalContentCount())
-        print("  In encounter: " .. tostring(encounterActive))
         local inInstance, instanceType = IsInInstance()
-        print("  Instance type: " .. tostring(instanceType))
+        local statusLines = {
+            "Tarball's Dadabase Status:",
+            "  Global Enabled: " .. (TarballsDadabaseDB.globalEnabled and "ON" or "OFF"),
+            "  Version: " .. Dadabase.VERSION,
+            "  Debug: " .. tostring(TarballsDadabaseDB.debug),
+            "  Cooldown: " .. TarballsDadabaseDB.cooldown .. " seconds",
+            "  Total content: " .. Dadabase.DatabaseManager:GetTotalContentCount(),
+            "  In encounter: " .. tostring(encounterActive),
+            "  Instance type: " .. tostring(instanceType),
+            ""
+        }
 
         -- Module status
         for moduleId, module in pairs(Dadabase.DatabaseManager.modules) do
             local moduleDB = TarballsDadabaseDB.modules[moduleId]
             if moduleDB then
                 local content = Dadabase.DatabaseManager:GetEffectiveContent(moduleId)
-                print("  [" .. module.name .. "] " .. (moduleDB.enabled and "ON" or "OFF") .. " - " .. #content .. " items")
+                local stats = TarballsDadabaseDB.stats[moduleId] or 0
+                table.insert(statusLines, "  [" .. module.name .. "] " .. (moduleDB.enabled and "ON" or "OFF") .. " - " .. #content .. " items, " .. stats .. " told")
             end
+        end
+
+        for _, line in ipairs(statusLines) do
+            print(line)
         end
 
     else

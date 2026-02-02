@@ -77,7 +77,7 @@ local defaultSayings = {
 Dadabase.DatabaseManager:RegisterModule("demotivational", {
     name = "Demotivational",
     defaultContent = defaultSayings,
-    dbVersion = 2,
+    dbVersion = 1,
     defaultSettings = {
         enabled = false,
         triggers = {

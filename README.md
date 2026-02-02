@@ -77,8 +77,13 @@ Access the configuration panel via `/dadabase` or through the WoW Interface Opti
 ### Content Type Tabs (Dad Jokes, Demotivational, Guild Quotes)
 Each content type has its own tab with:
 
+**Warning Banner:**
+- Red warning appears at top when addon is globally disabled
+- Always visible reminder to enable in Settings tab
+
 **Enable/Disable:**
-- Module toggle (controls gray out when disabled)
+- Module toggle (always enabled for configuration, even when globally disabled)
+- Other controls gray out when disabled
 - Disabled modules won't trigger even if global is enabled
 
 **Triggers:**
@@ -131,6 +136,23 @@ The addon uses a change-tracking system to manage content efficiently. Default c
 5. Randomly selects one item to send
 6. Adds a randomized prefix with adjective
 7. Increments usage statistics
+
+**Note:** Manual commands have a 3-second rate limit to prevent spam.
+
+## Security & Performance
+
+### Security Features
+- **Input Sanitization:** All user-entered content is sanitized to remove WoW formatting codes (colors, hyperlinks, textures, encrypted text)
+- **Length Validation:** Content limited to 255 characters (WoW chat message limit)
+- **Type Validation:** Comprehensive error handling validates all data types
+- **Race Condition Prevention:** Pending message flag prevents concurrent sends
+
+### Performance Optimizations
+- **Content Caching:** Effective content cached for each module (critical for 1100+ jokes)
+- **Cache Invalidation:** Automatic cache clearing when content is modified
+- **Efficient Lookups:** Sets used instead of arrays for deletion checks
+- **String Building:** table.concat() used instead of concatenation in loops
+- **Random Seeding:** math.random properly seeded for better distribution
 
 ## Saved Variables
 

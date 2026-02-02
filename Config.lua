@@ -11,9 +11,15 @@ local CONFIG_PANEL_WIDTH = 700
 local CONFIG_PANEL_HEIGHT = 650
 local TAB_BUTTON_WIDTH_SMALL = 120
 local TAB_BUTTON_WIDTH_LARGE = 130
+local TAB_BUTTON_HEIGHT = 25
 local MAX_CHAT_MESSAGE_LENGTH = 255
 local EDITOR_MIN_HEIGHT = 180
 local EDITOR_LINE_HEIGHT = 14
+local EDITOR_WIDTH = 600
+local SLIDER_WIDTH = 300
+local DROPDOWN_WIDTH = 180
+local DIVIDER_WIDTH = 640
+local STATUS_CLEAR_DELAY = 3
 
 -- Registered module config tabs
 Config.moduleTabs = {}
@@ -72,7 +78,7 @@ local function CreateConfigPanel()
 
     -- About Tab (first tab)
     local aboutTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    aboutTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, 25)
+    aboutTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, TAB_BUTTON_HEIGHT)
     aboutTabBtn:SetPoint("TOPLEFT", 20, -35)
     aboutTabBtn:SetText("About")
     aboutTabBtn:SetScript("OnClick", function() ShowTab(1) end)
@@ -153,7 +159,7 @@ local function CreateConfigPanel()
 
     -- Settings Tab (second tab)
     local settingsTabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    settingsTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, 25)
+    settingsTabBtn:SetSize(TAB_BUTTON_WIDTH_SMALL, TAB_BUTTON_HEIGHT)
     settingsTabBtn:SetPoint("LEFT", aboutTabBtn, "RIGHT", 5, 0)
     settingsTabBtn:SetText("Settings")
     settingsTabBtn:SetScript("OnClick", function() ShowTab(2) end)
@@ -193,7 +199,7 @@ local function CreateConfigPanel()
     -- Divider
     local divider1 = settingsTab:CreateTexture(nil, "ARTWORK")
     divider1:SetColorTexture(0.5, 0.5, 0.5, 0.5)
-    divider1:SetSize(640, 1)
+    divider1:SetSize(DIVIDER_WIDTH, 1)
     divider1:SetPoint("TOPLEFT", 10, yOffset)
     yOffset = yOffset - 20
 
@@ -237,7 +243,7 @@ local function CreateConfigPanel()
     -- Divider
     local divider2 = settingsTab:CreateTexture(nil, "ARTWORK")
     divider2:SetColorTexture(0.5, 0.5, 0.5, 0.5)
-    divider2:SetSize(640, 1)
+    divider2:SetSize(DIVIDER_WIDTH, 1)
     divider2:SetPoint("TOPLEFT", 10, yOffset)
     yOffset = yOffset - 20
 
@@ -256,7 +262,7 @@ local function CreateConfigPanel()
 
     local cooldownSlider = CreateFrame("Slider", nil, settingsTab, "OptionsSliderTemplate")
     cooldownSlider:SetPoint("TOPLEFT", 10, yOffset)
-    cooldownSlider:SetWidth(300)
+    cooldownSlider:SetWidth(SLIDER_WIDTH)
     cooldownSlider:SetMinMaxValues(0, 60)
     cooldownSlider:SetValueStep(1)
     cooldownSlider:SetValue(TarballsDadabaseDB.cooldown)
@@ -314,7 +320,7 @@ local function CreateConfigPanel()
         {text = "Raid Boss Warning", value = SOUNDKIT.RAID_BOSS_EMOTE_WARNING or 44854}
     }
 
-    UIDropDownMenu_SetWidth(soundDropdown, 180)
+    UIDropDownMenu_SetWidth(soundDropdown, DROPDOWN_WIDTH)
     UIDropDownMenu_Initialize(soundDropdown, function(self, level)
         for _, option in ipairs(soundOptions) do
             local info = UIDropDownMenu_CreateInfo()
@@ -345,13 +351,16 @@ local function CreateConfigPanel()
     testSoundBtn:SetPoint("LEFT", soundDropdown, "RIGHT", -15, -2)
     testSoundBtn:SetText("Test")
     testSoundBtn:SetScript("OnClick", function()
-        PlaySound(TarballsDadabaseDB.soundEffect)
+        local success, err = pcall(PlaySound, TarballsDadabaseDB.soundEffect)
+        if not success then
+            print("Failed to play sound: Invalid sound ID")
+        end
     end)
 
     -- Module Tabs
     for _, moduleTab in ipairs(Config.moduleTabs) do
         local tabBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-        tabBtn:SetSize(TAB_BUTTON_WIDTH_LARGE, 25)
+        tabBtn:SetSize(TAB_BUTTON_WIDTH_LARGE, TAB_BUTTON_HEIGHT)
         tabBtn:SetPoint("LEFT", tabButtons[#tabButtons], "RIGHT", 5, 0)
 
         tabBtn:SetText(moduleTab.name)
@@ -518,7 +527,7 @@ function Config:BuildModuleContent(container, moduleId)
     editBox:SetMultiLine(true)
     editBox:SetAutoFocus(false)
     editBox:SetFontObject("GameFontHighlightSmall")
-    editBox:SetWidth(600)
+    editBox:SetWidth(EDITOR_WIDTH)
     editBox:SetMaxLetters(0)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
 
@@ -582,12 +591,17 @@ function Config:BuildModuleContent(container, moduleId)
                 if #line > MAX_CHAT_MESSAGE_LENGTH then
                     skippedLines = skippedLines + 1
                 else
-                    -- Sanitize input - remove color codes and hyperlinks
-                    line = line:gsub("|c%x%x%x%x%x%x%x%x", "")  -- Remove color codes
-                    line = line:gsub("|H.-|h", "")  -- Remove hyperlinks
+                    -- Sanitize input - remove WoW formatting codes
+                    line = line:gsub("|c%x%x%x%x%x%x%x%x", "")  -- Remove color codes (8 hex digits)
+                    line = line:gsub("|H.-|h.-|h", "")  -- Remove hyperlinks (more precise)
                     line = line:gsub("|r", "")  -- Remove color resets
                     line = line:gsub("|T.-|t", "")  -- Remove textures
-                    table.insert(newContent, line)
+                    line = line:gsub("|K.-|k", "")  -- Remove encrypted text
+                    line = line:gsub("|n", "")  -- Remove line breaks
+                    line = line:trim()  -- Final trim after sanitization
+                    if line ~= "" then
+                        table.insert(newContent, line)
+                    end
                 end
             end
         end
@@ -608,7 +622,7 @@ function Config:BuildModuleContent(container, moduleId)
         saveBtn:Disable()
 
         -- Clear status after 3 seconds
-        C_Timer.After(3, function()
+        C_Timer.After(STATUS_CLEAR_DELAY, function()
             statusLabel:SetText("")
         end)
     end)
@@ -624,7 +638,7 @@ function Config:BuildModuleContent(container, moduleId)
         moduleDB.userDeletions = {}
         LoadContent()
         statusLabel:SetText("Reset to defaults!")
-        C_Timer.After(3, function()
+        C_Timer.After(STATUS_CLEAR_DELAY, function()
             statusLabel:SetText("")
         end)
     end)
@@ -651,6 +665,28 @@ function Config:BuildModuleContent(container, moduleId)
         resetBtn,
         editBox
     }
+
+    -- Tooltip handlers (defined once to prevent memory leaks)
+    local function ShowGlobalDisabledTooltip(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Addon Disabled", 1, 0, 0)
+        GameTooltip:AddLine("Enable the addon in the Settings tab to use this feature.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end
+
+    local function ShowModuleDisabledTooltip(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Module Disabled", 1, 0.5, 0)
+        GameTooltip:AddLine("Enable " .. module.name .. " to use this feature.", 1, 1, 1, true)
+        GameTooltip:Show()
+    end
+
+    local function HideTooltip(self)
+        GameTooltip:Hide()
+    end
+
+    -- Track tooltip state to prevent recreating handlers
+    local tooltipStates = {}
 
     -- Function to refresh control states based on global and module enabled
     local function RefreshControls()
@@ -687,35 +723,29 @@ function Config:BuildModuleContent(container, moduleId)
 
         -- Add/remove tooltip handlers for all controls (except enableCheckbox)
         for _, control in ipairs(allControls) do
+            local desiredState = "none"
+
             if control == enableCheckbox then
-                -- Enable checkbox has no tooltip (always enabled)
-                control:SetScript("OnEnter", nil)
-                control:SetScript("OnLeave", nil)
+                desiredState = "none"
             elseif not globalEnabled then
-                -- Global disabled tooltip for other controls
-                control:SetScript("OnEnter", function(self)
-                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetText("Addon Disabled", 1, 0, 0)
-                    GameTooltip:AddLine("Enable the addon in the Settings tab to use this feature.", 1, 1, 1, true)
-                    GameTooltip:Show()
-                end)
-                control:SetScript("OnLeave", function(self)
-                    GameTooltip:Hide()
-                end)
+                desiredState = "global"
             elseif not moduleEnabled then
-                -- Module is disabled but addon is enabled
-                control:SetScript("OnEnter", function(self)
-                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                    GameTooltip:SetText("Module Disabled", 1, 0.5, 0)
-                    GameTooltip:AddLine("Enable " .. module.name .. " to use this feature.", 1, 1, 1, true)
-                    GameTooltip:Show()
-                end)
-                control:SetScript("OnLeave", function(self)
-                    GameTooltip:Hide()
-                end)
-            else
-                control:SetScript("OnEnter", nil)
-                control:SetScript("OnLeave", nil)
+                desiredState = "module"
+            end
+
+            -- Only update handlers if state changed
+            if tooltipStates[control] ~= desiredState then
+                if desiredState == "global" then
+                    control:SetScript("OnEnter", ShowGlobalDisabledTooltip)
+                    control:SetScript("OnLeave", HideTooltip)
+                elseif desiredState == "module" then
+                    control:SetScript("OnEnter", ShowModuleDisabledTooltip)
+                    control:SetScript("OnLeave", HideTooltip)
+                else
+                    control:SetScript("OnEnter", nil)
+                    control:SetScript("OnLeave", nil)
+                end
+                tooltipStates[control] = desiredState
             end
         end
     end

@@ -5,9 +5,6 @@ Dadabase.DatabaseManager = {}
 
 local DB = Dadabase.DatabaseManager
 
--- Constants
-local ADJECTIVE_COUNT = 100
-
 -- Registered modules
 DB.modules = {}
 
@@ -307,6 +304,11 @@ function DB:GetContentPrefix(moduleId)
         "fearless"
     }
 
+    -- Bounds checking - fallback if adjectives table is empty or corrupted
+    if #adjectives == 0 then
+        return ""
+    end
+
     local randomAdjective = adjectives[math.random(#adjectives)]
 
     -- Determine a/an based on first letter
@@ -364,7 +366,16 @@ function DB:GetRandomContent(trigger, group, ignoreTriggers)
 
     -- Return random item from pool
     if #contentPool == 0 then
-        return "The Dadabase is empty. This wipe is now canon.", nil
+        -- Return fallback with first enabled module ID (or "unknown" if none)
+        local fallbackModuleId = "unknown"
+        for moduleId, _ in pairs(self.modules) do
+            local moduleDB = TarballsDadabaseDB.modules[moduleId]
+            if moduleDB and moduleDB.enabled then
+                fallbackModuleId = moduleId
+                break
+            end
+        end
+        return "The Dadabase is empty. This wipe is now canon.", fallbackModuleId
     end
 
     local selected = contentPool[math.random(#contentPool)]
