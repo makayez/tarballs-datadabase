@@ -150,6 +150,12 @@ function DB:GetEffectiveContent(moduleId)
     end
 
     local module = self.modules[moduleId]
+
+    -- Check if SavedVariables is initialized
+    if not TarballsDadabaseDB or not TarballsDadabaseDB.modules then
+        return {}
+    end
+
     local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
     if not module or not moduleDB then
@@ -184,6 +190,9 @@ end
 
 function DB:GetTotalContentCount()
     local total = 0
+    if not self.modules then
+        return 0
+    end
     for moduleId, _ in pairs(self.modules) do
         local content = self:GetEffectiveContent(moduleId)
         total = total + #content
@@ -329,6 +338,11 @@ function DB:GetRandomContent(trigger, group, ignoreTriggers)
     -- Each entry is {content = "text", moduleId = "id"}
     local contentPool = {}
 
+    -- Check if database is initialized
+    if not TarballsDadabaseDB or not TarballsDadabaseDB.modules then
+        return "The Dadabase is empty. This wipe is now canon.", "unknown"
+    end
+
     for moduleId, _ in pairs(self.modules) do
         local moduleDB = TarballsDadabaseDB.modules[moduleId]
 
@@ -383,23 +397,26 @@ function DB:GetRandomContent(trigger, group, ignoreTriggers)
 end
 
 function DB:GetModuleSettings(moduleId)
+    if not TarballsDadabaseDB or not TarballsDadabaseDB.modules then
+        return nil
+    end
     return TarballsDadabaseDB.modules[moduleId]
 end
 
 function DB:SetModuleEnabled(moduleId, enabled)
-    if TarballsDadabaseDB.modules[moduleId] then
+    if TarballsDadabaseDB and TarballsDadabaseDB.modules and TarballsDadabaseDB.modules[moduleId] then
         TarballsDadabaseDB.modules[moduleId].enabled = enabled
     end
 end
 
 function DB:SetModuleTrigger(moduleId, trigger, enabled)
-    if TarballsDadabaseDB.modules[moduleId] then
+    if TarballsDadabaseDB and TarballsDadabaseDB.modules and TarballsDadabaseDB.modules[moduleId] then
         TarballsDadabaseDB.modules[moduleId].triggers[trigger] = enabled
     end
 end
 
 function DB:SetModuleGroup(moduleId, group, enabled)
-    if TarballsDadabaseDB.modules[moduleId] then
+    if TarballsDadabaseDB and TarballsDadabaseDB.modules and TarballsDadabaseDB.modules[moduleId] then
         TarballsDadabaseDB.modules[moduleId].groups[group] = enabled
     end
 end

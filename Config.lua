@@ -211,6 +211,11 @@ local function CreateConfigPanel()
 
     local function GetModuleStats()
         local stats = {}
+        -- Check if database is initialized
+        if not DB.modules or not TarballsDadabaseDB or not TarballsDadabaseDB.stats then
+            return stats
+        end
+
         for moduleId, module in pairs(DB.modules) do
             local content = DB:GetEffectiveContent(moduleId)
             local told = TarballsDadabaseDB.stats[moduleId] or 0
@@ -228,7 +233,16 @@ local function CreateConfigPanel()
     statsText:SetJustifyH("LEFT")
 
     local function UpdateStats()
+        if not statsText then
+            return
+        end
+
         local stats = GetModuleStats()
+        if not stats or not next(stats) then
+            statsText:SetText("No modules loaded yet")
+            return
+        end
+
         local lines = {}
         for moduleId, stat in pairs(stats) do
             table.insert(lines, stat.name .. ": " .. stat.count .. " items, " .. stat.told .. " told")

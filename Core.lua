@@ -201,8 +201,13 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "ADDON_LOADED" then
         local addonName = ...
         if addonName == ADDON_NAME then
-            -- Seed random number generator for better randomness
-            math.randomseed(time())
+            -- Seed random number generator for better randomness (if available)
+            if math.randomseed then
+                local success, err = pcall(math.randomseed, time())
+                if not success then
+                    DebugPrint("Could not seed random: " .. tostring(err))
+                end
+            end
 
             -- Initialize database
             Dadabase.DatabaseManager:Initialize()
