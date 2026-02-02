@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-01
+
 ### Added
+- Multiple content types (Dad Jokes, Demotivational, Guild Quotes)
 - Global enable/disable toggle in Settings tab to override all module settings
 - Red warning banner on module tabs when addon is globally disabled
 - Statistics tracking showing content count and times told per module
@@ -25,13 +28,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Demotivational: "And now, for a [adjective] motivational quote: "
   - Guild Quotes: "And now, for some [adjective] famous words from a friend: "
 - Automatic grammar handling (a/an) based on adjective
-- 32 additional demotivational sayings
+- Flexible trigger system (wipes, personal death)
+- Group targeting (raids, parties)
+- 1100+ dad jokes and puns
+- 60+ demotivational sayings
+- `/dadabase on` and `/dadabase off` commands
+- `/dadabase say` command for manual content sharing
+- `/dadabase guild` command for guild chat
+- `/dadabase status` command with detailed information
+- `/dadabase debug` command for troubleshooting
 - Migration system for existing SavedVariables data
 - Rate limiting on manual commands (3 second cooldown)
 - Content caching system for performance with large datasets
 - Comprehensive input validation and sanitization
 - Error handling for all critical operations
 - Command hint in startup message
+- Modular architecture for easy expansion
 
 ### Changed
 - Sound effects now only play when Test button is clicked (not on dropdown selection)
@@ -50,22 +62,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - DB versioning now preserves user deletions (deleted jokes stay deleted on upgrade)
 - Debug output now properly conditional (no spam in chat on load)
 - All magic numbers replaced with named constants
-- README updated to reflect all new features
+- Refactored to modular architecture
+- Each content type has its own configuration tab
 
 ### Fixed
 - Sound effect test button now properly plays sounds using numeric SOUNDKIT IDs
 - Corrected sound effect IDs (removed incorrect ones causing voice lines)
 - Personal death trigger now works when solo (not just in groups)
 - Personal death trigger no longer requires group checkboxes to be enabled
-- Guild Quotes text editor now accepts input (removed from disabled controls)
+- Guild Quotes text editor now accepts input (click handlers on parent frames)
 - Manual commands (`/dadabase say`, `/dadabase guild`) no longer return "dadabase is empty" when modules are enabled but triggers/groups are not configured
 - Race condition in SendContent that could bypass cooldown
 - Message length validation prevents exceeding WoW's 255 character limit
 - Memory leak from recreating tooltip handlers on every refresh
 - Empty contentPool now returns valid moduleId instead of nil
+- Initialization order errors with comprehensive nil checks
 - Content management now handles large datasets (1100+ items) efficiently with caching
 - New default content in updates automatically appears without restoring deleted items
 - SavedVariables file size reduced significantly for users with default content
+- Various typos in dad jokes
 
 ### Technical
 - `GetEffectiveContent()` function merges defaults with user changes at runtime with caching
@@ -76,25 +91,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `GetContentPrefix()` function generates dynamic prefixes with 108 randomized adjectives
 - Input sanitization strips WoW formatting codes (colors, hyperlinks, textures, encrypted text)
 - Race condition prevention in SendContent using pendingMessage flag
-- Math.random properly seeded for better randomness
+- Math.random properly seeded for better randomness (when available in environment)
 - All magic numbers replaced with named constants
 - Tooltip handlers reused instead of recreated to prevent memory leaks
 - Backward compatibility maintained for legacy functions
-
-## [0.3.0] - 2026-02-01
-
-### Added
-- Multiple content types (Dad Jokes, Demotivational, Guild Quotes)
-- Flexible trigger system (wipes, personal death)
-- Group targeting (raids, parties)
-- `/dadabase on` and `/dadabase off` commands
-- `/dadabase say` command for manual content sharing
-- `/dadabase guild` command for guild chat
-- Modular architecture for easy expansion
-
-### Changed
-- Refactored to modular architecture
-- Each content type has its own configuration tab
 
 ## [0.2.0] - 2025-01-XX
 
