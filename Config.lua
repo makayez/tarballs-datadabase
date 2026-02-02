@@ -548,6 +548,10 @@ function Config:BuildModuleContent(container, moduleId)
     editBox:EnableKeyboard(true)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
     editBox:SetScript("OnMouseDown", function(self) self:SetFocus() end)
+    editBox:SetScript("OnShow", function(self) self:SetEnabled(true) end)
+
+    -- Make sure scrollFrame doesn't block mouse events
+    scrollFrame:EnableMouse(true)
 
     scrollFrame:SetScrollChild(editBox)
 
@@ -572,15 +576,18 @@ function Config:BuildModuleContent(container, moduleId)
         editBox:SetText(text)
         originalText = text
 
-        -- Calculate height based on content
-        local numLines = #content
+        -- Calculate height based on content (ensure minimum height even when empty)
+        local numLines = math.max(#content, 10)  -- Minimum 10 lines visible
         local calculatedHeight = math.max(numLines * EDITOR_LINE_HEIGHT, EDITOR_MIN_HEIGHT)
         editBox:SetHeight(calculatedHeight)
 
         editBox:SetCursorPosition(0)
+        editBox:Enable()  -- Ensure editBox stays enabled
+        editBox:EnableMouse(true)
+        editBox:EnableKeyboard(true)
+        editBox:Show()
         contentLabel:SetText("Content (" .. #content .. " items)")
         saveBtn:Disable()
-        editBox:Enable()  -- Ensure editBox stays enabled
     end
 
     container.LoadContent = LoadContent
