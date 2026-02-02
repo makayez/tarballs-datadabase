@@ -547,27 +547,17 @@ function Config:BuildModuleContent(container, moduleId)
     editBox:EnableMouse(true)
     editBox:EnableKeyboard(true)
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    editBox:SetScript("OnMouseDown", function(self)
-        self:SetFocus()
-        return true
-    end)
-    editBox:SetScript("OnShow", function(self)
-        self:SetEnabled(true)
-        self:EnableMouse(true)
-        self:EnableKeyboard(true)
-    end)
 
     scrollFrame:SetScrollChild(editBox)
 
-    -- Add click handler to scrollFrame to pass focus to editBox
-    scrollFrame:EnableMouse(true)
-    scrollFrame:SetScript("OnMouseDown", function(self)
+    -- Click handlers to ensure focus (this is what actually fixes Guild Quotes)
+    editorBorder:EnableMouse(true)
+    editorBorder:SetScript("OnMouseDown", function(self)
         editBox:SetFocus()
     end)
 
-    -- Add click handler to editorBorder too
-    editorBorder:EnableMouse(true)
-    editorBorder:SetScript("OnMouseDown", function(self)
+    scrollFrame:EnableMouse(true)
+    scrollFrame:SetScript("OnMouseDown", function(self)
         editBox:SetFocus()
     end)
 
@@ -598,10 +588,6 @@ function Config:BuildModuleContent(container, moduleId)
         editBox:SetHeight(calculatedHeight)
 
         editBox:SetCursorPosition(0)
-        editBox:Enable()  -- Ensure editBox stays enabled
-        editBox:EnableMouse(true)
-        editBox:EnableKeyboard(true)
-        editBox:Show()
         contentLabel:SetText("Content (" .. #content .. " items)")
         saveBtn:Disable()
     end
@@ -747,10 +733,8 @@ function Config:BuildModuleContent(container, moduleId)
             enableCheckbox.text:SetTextColor(1, 1, 1)
         end
 
-        -- EditBox is always enabled (users can add content before enabling module)
-        editBox:Enable()
-
         -- Handle other module controls - disabled by either global or module setting
+        -- Note: editBox is never in moduleControls, so it stays enabled always
         for _, control in ipairs(moduleControls) do
             if globalEnabled and moduleEnabled then
                 control:Enable()
@@ -800,10 +784,6 @@ function Config:BuildModuleContent(container, moduleId)
 
     container.RefreshControls = RefreshControls
     RefreshControls()
-
-    -- Ensure editBox is always enabled for typing (even when module/global disabled)
-    editBox:Enable()
-
     LoadContent()
 end
 
