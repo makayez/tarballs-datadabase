@@ -9,15 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Global enable/disable toggle in Settings tab to override all module settings
 - Statistics tracking showing content count and times told per module
-- Sound effects with dropdown selection (9 different WoW sounds available)
+- Statistics now increment for manual commands (`/dadabase say`, `/dadabase guild`)
+- Sound effects with dropdown selection (17 different WoW sounds available)
 - Test button next to sound effect dropdown to preview selected sound
 - About tab with usage instructions, GitHub link, and thank you message
 - Tooltips on disabled controls explaining addon is globally disabled or module is disabled
 - Clarifying help text for cooldown setting explaining its behavior
 - Multi-line text editor for content management (one item per line)
 - Save Changes button with visual feedback in configuration UI
+- Save Changes button now disabled until content is actually edited
 - Reset to Defaults button to clear all user customizations
-- Dynamic prefixes for all content types with 49 randomized adjectives
+- Dynamic prefixes for all content types with 100 randomized adjectives
   - Dad Jokes: "And now, for a [adjective] dad joke: "
   - Demotivational: "And now, for a [adjective] motivational quote: "
   - Guild Quotes: "And now, for some [adjective] famous words from a friend: "
@@ -38,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - README updated to reflect new change-tracking system
 
 ### Fixed
+- Sound effect test button now properly plays sounds using numeric SOUNDKIT IDs
 - Personal death trigger now works when solo (not just in groups)
 - Personal death trigger no longer requires group checkboxes to be enabled
 - Manual commands (`/dadabase say`, `/dadabase guild`) no longer return "dadabase is empty" when modules are enabled but triggers/groups are not configured
