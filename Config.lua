@@ -289,22 +289,20 @@ local function CreateConfigPanel()
 
     local soundOptions = {
         {text = "Level Up", value = SOUNDKIT.LEVEL_UP or 888},
-        {text = "Achievement", value = SOUNDKIT.ACHIEVEMENT_MENU_OPEN or 3337},
-        {text = "Quest Complete", value = SOUNDKIT.UI_QUEST_COMPLETE or 878},
         {text = "Ready Check", value = SOUNDKIT.READY_CHECK or 8960},
         {text = "Raid Warning", value = SOUNDKIT.RAID_WARNING or 8959},
-        {text = "Alarm Clock Warning", value = SOUNDKIT.ALARM_CLOCK_WARNING_3 or 12867},
-        {text = "PVP Victory", value = SOUNDKIT.UI_BATTLEGROUND_VICTORY_HORDE or 8454},
-        {text = "PVP Defeat", value = SOUNDKIT.UI_BATTLEGROUND_VICTORY_ALLIANCE or 8455},
-        {text = "Gong", value = SOUNDKIT.UI_GUILDACHIEVEMENT_TOAST or 34076},
-        {text = "Treasure Found", value = SOUNDKIT.UI_LEGENDARY_LOOT_TOAST or 31578},
-        {text = "Auction Window Open", value = SOUNDKIT.AUCTION_WINDOW_OPEN or 5274},
-        {text = "Ship Bell", value = SOUNDKIT.UI_GARRISON_MISSION_COMPLETE_ENCOUNTER or 62648},
-        {text = "Drums of War", value = SOUNDKIT.UI_IG_PLAYER_RAID_WARNING or 31744},
-        {text = "Mage Portal Open", value = SOUNDKIT.UI_PORTAL_OPEN or 2531},
-        {text = "UI Ethereal Window", value = SOUNDKIT.UI_ETHEREAL_WINDOW_OPEN or 3193},
-        {text = "UI Warlock Portal", value = SOUNDKIT.UI_WARLOCKSGLIMPSE_SPELLOPEN or 3194},
-        {text = "Death Knight Death Gate", value = SOUNDKIT.UI_DEATHKNIGHT_DEATHGATE_SPELLOPEN or 3195}
+        {text = "Alarm Clock", value = SOUNDKIT.ALARM_CLOCK_WARNING_3 or 12867},
+        {text = "Tell Received", value = SOUNDKIT.TELL_MESSAGE or 3081},
+        {text = "Whisper Received", value = SOUNDKIT.IG_CHAT_EMOTE_BUTTON or 567},
+        {text = "Quest Added", value = SOUNDKIT.UI_QUEST_ROLLING_FORWARD_01 or 55183},
+        {text = "Quest Removed", value = SOUNDKIT.UI_QUEST_ROLLING_BACKWARD_01 or 55184},
+        {text = "Map Ping", value = SOUNDKIT.MAP_PING or 3175},
+        {text = "Item Push", value = SOUNDKIT.UI_BAG_SLOTS_HIGHLIGHT or 21347},
+        {text = "Auction Window", value = SOUNDKIT.AUCTION_WINDOW_OPEN or 5274},
+        {text = "UI Click", value = SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856},
+        {text = "UI Error", value = SOUNDKIT.IG_MAINMENU_OPTION or 852},
+        {text = "UI Bell Toll", value = SOUNDKIT.UI_ORDERHALL_TALENT_READY_TOAST or 73743},
+        {text = "Gong", value = SOUNDKIT.UI_80_GARRISON_TALENT_AVAILABLE or 45477}
     }
 
     UIDropDownMenu_SetWidth(soundDropdown, 180)
@@ -316,7 +314,7 @@ local function CreateConfigPanel()
             info.func = function()
                 TarballsDadabaseDB.soundEffect = option.value
                 UIDropDownMenu_SetText(soundDropdown, option.text)
-                PlaySound(option.value)
+                -- Don't play sound on selection, only on Test button
             end
             UIDropDownMenu_AddButton(info, level)
         end
