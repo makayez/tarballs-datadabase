@@ -313,13 +313,13 @@ local function CreateConfigPanel()
     local cooldownSlider = CreateFrame("Slider", nil, settingsTab, "OptionsSliderTemplate")
     cooldownSlider:SetPoint("TOPLEFT", 10, yOffset)
     cooldownSlider:SetWidth(SLIDER_WIDTH)
-    cooldownSlider:SetMinMaxValues(0, 60)
+    cooldownSlider:SetMinMaxValues(0, 600)
     cooldownSlider:SetValueStep(1)
     cooldownSlider:SetValue(TarballsDadabaseDB.cooldown)
     cooldownSlider:SetObeyStepOnDrag(true)
 
     cooldownSlider.Low:SetText("0s")
-    cooldownSlider.High:SetText("60s")
+    cooldownSlider.High:SetText("10m")
 
     cooldownSlider.valueText = cooldownSlider:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     cooldownSlider.valueText:SetPoint("TOP", cooldownSlider, "BOTTOM", 0, 0)
@@ -890,10 +890,40 @@ end
 -- ============================================================================
 
 function Config:RegisterInterfaceOptions()
-    if not self.frame then
-        self.frame = CreateConfigPanel()
-    end
-    local category = Settings.RegisterCanvasLayoutCategory(self.frame, "Tarball's Dadabase")
+    -- Create a simple settings panel with a button to open the full config
+    -- This prevents conflicts between embedded Settings display and standalone dialog
+    local settingsPanel = CreateFrame("Frame", "TarballsDadabaseSettingsPanel")
+    settingsPanel.name = "Tarball's Dadabase"
+
+    -- Title
+    local title = settingsPanel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("Tarball's Dadabase")
+
+    -- Description
+    local desc = settingsPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
+    desc:SetPoint("TOPRIGHT", settingsPanel, "TOPRIGHT", -16, -32)
+    desc:SetJustifyH("LEFT")
+    desc:SetText("A World of Warcraft addon that shares uplifting dad jokes, motivational quotes, and memorable guild sayings when your raid wipes.")
+
+    -- Open Config button
+    local openBtn = CreateFrame("Button", nil, settingsPanel, "UIPanelButtonTemplate")
+    openBtn:SetSize(180, 30)
+    openBtn:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -16)
+    openBtn:SetText("Open Configuration")
+    openBtn:SetScript("OnClick", function()
+        Config:Show()
+        -- Close the Settings panel after opening config
+        Settings.Close()
+    end)
+
+    -- Slash command info
+    local slashInfo = settingsPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    slashInfo:SetPoint("TOPLEFT", openBtn, "BOTTOMLEFT", 0, -16)
+    slashInfo:SetText("You can also use the slash command: /dadabase")
+
+    local category = Settings.RegisterCanvasLayoutCategory(settingsPanel, "Tarball's Dadabase")
     Settings.RegisterAddOnCategory(category)
     self.category = category
 end
