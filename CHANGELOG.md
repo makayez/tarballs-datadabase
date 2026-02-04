@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Config panel toggle bug when switching between `/dadabase` command and Options menu (now uses IsVisible() instead of IsShown())
 - Config panel no longer attempts to embed in Settings window, preventing button overflow and display issues
 - Custom prefix controls now properly gray out when "Enable prefix" is toggled off
-- Content editor no longer skips lines over 255 characters - long content is now automatically split when sent
+- Content editor now allows entries up to 500 characters (previously 255) - long content is automatically split when sent
 
 ### Technical
 - Unified SendMessage() function handles message splitting for all channel types (RAID, PARTY, SAY, GUILD)
