@@ -54,14 +54,16 @@ World of Warcraft addon that automatically shares content (dad jokes, demotivati
 /dadabase off                - Disable all modules
 /dadabase say                - Send content (to party if grouped, raid if in raid, otherwise /say)
 /dadabase guild              - Send content to guild chat
-/dadabase cooldown <seconds> - Set global cooldown between messages (0-60)
+/dadabase cooldown <seconds> - Set global cooldown between messages (0-600)
 /dadabase status             - Show current settings and module status
 /dadabase debug              - Toggle debug mode
 ```
 
 ## Configuration
 
-Access the configuration panel via `/dadabase` or through the WoW Interface Options under Addons.
+Access the configuration panel via:
+- `/dadabase` command - Opens the full configuration dialog directly
+- WoW Interface Options under Addons > Tarball's Dadabase - Shows a simple panel with a button to open the full configuration
 
 ### About Tab
 - Overview of what the addon does
@@ -72,7 +74,7 @@ Access the configuration panel via `/dadabase` or through the WoW Interface Opti
 ### Settings Tab
 - **Global Enable/Disable:** Master toggle that overrides all module settings
 - **Statistics:** View content counts and usage statistics for each module
-- **Global Cooldown:** Slider to adjust seconds between messages (0-60)
+- **Global Cooldown:** Slider to adjust seconds between messages (0-600)
   - Prevents messages if one was sent within the specified time
 - **Sound Effects:** Optional audio notification when content triggers
   - 15 short, punchy sound effects to choose from

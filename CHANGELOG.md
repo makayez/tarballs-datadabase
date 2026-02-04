@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Maximum global cooldown increased from 60 seconds to 600 seconds (10 minutes)
+- Settings panel integration redesigned - Options > Addons > Tarball's Dadabase now shows a simple panel with a button to open the full configuration dialog
+
+### Fixed
+- Config panel toggle bug when switching between `/dadabase` command and Options menu (now uses IsVisible() instead of IsShown())
+- Tab button positioning now uses absolute positioning for consistent layout regardless of display method
+- Config panel no longer attempts to embed in Settings window, preventing button overflow and display issues
+
 ## [0.4.0] - 2026-02-03
 
 ### Added
