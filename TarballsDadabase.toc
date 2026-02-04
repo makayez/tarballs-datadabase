@@ -3,7 +3,7 @@
 ## Notes: Dispenses dad jokes upon group wipes
 ## Author: Tarball-Whisperwind [A]
 ## Version: 0.4.0
-## SavedVariables: TarballsDadabase
+## SavedVariables: TarballsDadabaseDB
 
 Database.lua
 Core.lua

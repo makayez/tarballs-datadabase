@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Tab button positioning now uses absolute positioning for consistent layout regardless of display method
 
 ### Fixed
+- **Critical:** SavedVariables declaration in TOC file (was TarballsDadabase, corrected to TarballsDadabaseDB) - settings and statistics now persist across restarts
 - **Critical:** Taint issue causing "blocked from Blizzard UI action" error (removed C_Timer.After from single message sending)
 - **Critical:** Race condition in multi-message splits (now validates group still exists before sending delayed messages)
 - **Critical:** Message splitting edge cases (empty chunks, infinite loops, proper word-boundary detection)
@@ -40,6 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Message splitting now accounts for prefix length in total message size calculation
 - Config panel toggle bug when switching between `/dadabase` command and Options menu (now uses IsVisible() instead of IsShown())
 - Config panel no longer attempts to embed in Settings window, preventing button overflow and display issues
+- Custom prefix controls now properly gray out when "Enable prefix" is toggled off
 
 ### Technical
 - Message splitting with smart word-boundary detection (searches for spaces/punctuation within last 50 chars)

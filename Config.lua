@@ -502,9 +502,6 @@ function Config:BuildModuleContent(container, moduleId)
     prefixCheckbox.text:SetPoint("LEFT", prefixCheckbox, "RIGHT", 5, 0)
     prefixCheckbox.text:SetText("Enable prefix")
     prefixCheckbox:SetChecked(moduleDB.prefixEnabled == true)
-    prefixCheckbox:SetScript("OnClick", function(self)
-        DB:SetPrefixEnabled(moduleId, self:GetChecked())
-    end)
     yOffset = yOffset - 30
 
     -- Use custom prefix checkbox
@@ -544,6 +541,38 @@ function Config:BuildModuleContent(container, moduleId)
     prefixHelp:SetJustifyH("LEFT")
     prefixHelp:SetText("Custom prefix will be added before each message (max 50 characters). Press Enter to save.")
     yOffset = yOffset - 65
+
+    -- Function to update custom prefix controls based on prefix enabled state
+    local function UpdatePrefixControls()
+        -- Custom prefix controls should only be enabled if:
+        -- 1. Global is enabled, AND
+        -- 2. Module is enabled, AND
+        -- 3. Prefix is enabled
+        local globalEnabled = TarballsDadabaseDB.globalEnabled
+        local moduleEnabled = moduleDB.enabled
+        local prefixEnabled = prefixCheckbox:GetChecked()
+        local shouldEnable = globalEnabled and moduleEnabled and prefixEnabled
+
+        if shouldEnable then
+            customPrefixCheckbox:Enable()
+            customPrefixCheckbox.text:SetTextColor(1, 1, 1)
+            prefixInput:Enable()
+            prefixInput:SetTextColor(1, 1, 1, 1)
+            prefixHelp:SetTextColor(1, 1, 1)
+        else
+            customPrefixCheckbox:Disable()
+            customPrefixCheckbox.text:SetTextColor(0.5, 0.5, 0.5)
+            prefixInput:Disable()
+            prefixInput:SetTextColor(0.5, 0.5, 0.5, 1)
+            prefixHelp:SetTextColor(0.5, 0.5, 0.5)
+        end
+    end
+
+    -- Hook up prefix checkbox to update custom prefix controls
+    prefixCheckbox:SetScript("OnClick", function(self)
+        DB:SetPrefixEnabled(moduleId, self:GetChecked())
+        UpdatePrefixControls()
+    end)
 
     -- Divider between auto-save settings and manual-save editor
     local editorDivider = container:CreateTexture(nil, "ARTWORK")
@@ -731,22 +760,21 @@ function Config:BuildModuleContent(container, moduleId)
     -- Store all controls that should be disabled when addon or module is disabled
     -- Note: enableCheckbox should always be enabled (even when global is off)
     -- Note: editBox should always remain enabled so users can add content before enabling module
+    -- Note: customPrefixCheckbox and prefixInput are handled separately by UpdatePrefixControls
     local moduleControls = {
         raidCheckbox,
         partyCheckbox,
         prefixCheckbox,
-        customPrefixCheckbox,
-        prefixInput,
         saveBtn,
         resetBtn
     }
 
     -- Controls that get tooltip handlers (editBox and prefixInput excluded to prevent typing interference)
+    -- Note: customPrefixCheckbox handled separately by UpdatePrefixControls
     local controlsWithTooltips = {
         raidCheckbox,
         partyCheckbox,
         prefixCheckbox,
-        customPrefixCheckbox,
         saveBtn,
         resetBtn
     }
@@ -837,6 +865,9 @@ function Config:BuildModuleContent(container, moduleId)
         for _, control in ipairs(controlsWithTooltips) do
             SetControlState(control, controlsEnabled, tooltipType)
         end
+
+        -- Update custom prefix controls based on prefix enabled state
+        UpdatePrefixControls()
     end
 
     -- Hook up enable checkbox to refresh controls
