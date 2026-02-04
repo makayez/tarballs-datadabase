@@ -13,7 +13,7 @@ local TAB_BUTTON_WIDTH_SMALL = 120
 local TAB_BUTTON_WIDTH_LARGE = 130
 local TAB_BUTTON_HEIGHT = 25
 local MAX_CHAT_MESSAGE_LENGTH = 255
-local MAX_CONTENT_ENTRY_LENGTH = 500
+local MAX_CONTENT_ENTRY_LENGTH = 205  -- 255 - 50 (max prefix length)
 local EDITOR_MIN_HEIGHT = 180
 local EDITOR_LINE_HEIGHT = 14
 local EDITOR_WIDTH = 600
@@ -594,7 +594,7 @@ function Config:BuildModuleContent(container, moduleId)
     instructionsLabel:SetPoint("TOPLEFT", 10, yOffset)
     instructionsLabel:SetPoint("TOPRIGHT", -10, yOffset)
     instructionsLabel:SetJustifyH("LEFT")
-    instructionsLabel:SetText("Edit the content below (one item per line, max 500 characters per line). Long content will be automatically split across multiple messages when sent. Click 'Save Changes' to apply your edits.")
+    instructionsLabel:SetText("Edit the content below (one item per line, max 205 characters per line to allow room for prefix). Click 'Save Changes' to apply your edits.")
     yOffset = yOffset - 25
 
     -- Multi-line text editor with border (includes buttons at bottom)
@@ -733,7 +733,7 @@ function Config:BuildModuleContent(container, moduleId)
         -- Show feedback
         local message = "Saved! (" .. #newContent .. " items)"
         if skippedLines > 0 then
-            message = message .. " (" .. skippedLines .. " lines over 500 chars, skipped)"
+            message = message .. " (" .. skippedLines .. " lines over 205 chars, skipped)"
         end
         statusLabel:SetText(message)
         contentLabel:SetText("Content Editor (" .. #newContent .. " items)")

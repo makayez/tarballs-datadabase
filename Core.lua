@@ -111,137 +111,26 @@ local function GetCurrentGroup()
     return nil
 end
 
--- Send a message to a specific channel, splitting if needed
--- channel: "RAID", "PARTY", "SAY", "GUILD", or nil for local print
-local function SendMessage(message, channel)
+local function SendContent(content, group)
     if pendingMessage then
         DebugPrint("Message already pending, skipping")
         return
     end
 
     pendingMessage = true
-    DebugPrint("Sending message to " .. (channel or "local") .. " (" .. #message .. " chars)")
+    DebugPrint("Sending content to " .. (group or "local"))
 
-    -- Split message if it exceeds max length
-    if #message > MAX_CHAT_MESSAGE_LENGTH then
-        DebugPrint("Message too long, splitting into multiple messages")
-
-        local messages = {}
-        local remainingText = message
-        local maxIterations = 20  -- Safety limit to prevent infinite loops
-
-        while #remainingText > 0 and #messages < maxIterations do
-            if #remainingText <= MAX_CHAT_MESSAGE_LENGTH then
-                -- Last chunk fits within limit
-                if remainingText:trim() ~= "" then
-                    table.insert(messages, remainingText:trim())
-                end
-                break
-            else
-                -- Find a good break point (space, period, comma)
-                local breakPoint = MAX_CHAT_MESSAGE_LENGTH
-                local searchStart = math.max(1, MAX_CHAT_MESSAGE_LENGTH - 50)
-
-                -- Look for a space, period, comma, or other punctuation near the limit
-                local lastSpace = remainingText:sub(searchStart, MAX_CHAT_MESSAGE_LENGTH):match(".*()[%s%.,%!%?;:]")
-                if lastSpace then
-                    breakPoint = searchStart + lastSpace - 1
-                else
-                    -- No punctuation found, try to break at any whitespace
-                    local anySpace = remainingText:sub(1, MAX_CHAT_MESSAGE_LENGTH):match(".*()%s")
-                    if anySpace then
-                        breakPoint = anySpace - 1
-                    else
-                        -- No whitespace at all, force break at limit (edge case for very long words)
-                        breakPoint = MAX_CHAT_MESSAGE_LENGTH
-                    end
-                end
-
-                -- Extract chunk and validate it's not empty
-                local chunk = remainingText:sub(1, breakPoint):trim()
-                if chunk ~= "" then
-                    table.insert(messages, chunk)
-                end
-
-                -- Move to next chunk
-                remainingText = remainingText:sub(breakPoint + 1):trim()
-
-                -- Safety check: if we're not making progress, force break
-                if breakPoint == 0 or #remainingText >= #message then
-                    DebugPrint("Message splitting stalled, forcing break")
-                    if remainingText:trim() ~= "" then
-                        table.insert(messages, remainingText:sub(1, MAX_CHAT_MESSAGE_LENGTH):trim())
-                    end
-                    break
-                end
-            end
-        end
-
-        -- Warn if we hit iteration limit
-        if #messages >= maxIterations then
-            DebugPrint("Warning: Message splitting hit max iterations, some content may be truncated")
-        end
-
-        DebugPrint("Split into " .. #messages .. " messages")
-
-        -- Send first message immediately
-        if #messages > 0 then
-            if channel then
-                SendChatMessage(messages[1], channel)
-            else
-                print(messages[1])
-            end
-        end
-
-        -- Send remaining messages with delay
-        for i = 2, #messages do
-            local delay = (i - 1) * 1.5  -- 1.5 seconds between each message
-            local msgIndex = i
-            C_Timer.After(delay, function()
-                -- Validate channel still available before sending (for group channels)
-                if channel == "RAID" and not IsInRaid() then
-                    DebugPrint("No longer in raid, canceling remaining messages")
-                    return
-                elseif channel == "PARTY" and not IsInGroup() then
-                    DebugPrint("No longer in party, canceling remaining messages")
-                    return
-                elseif channel == "GUILD" and not IsInGuild() then
-                    DebugPrint("No longer in guild, canceling remaining messages")
-                    return
-                end
-
-                if channel then
-                    SendChatMessage(messages[msgIndex], channel)
-                else
-                    print(messages[msgIndex])
-                end
-            end)
-        end
-
-        -- Clear pending flag after all messages are scheduled
-        local totalDelay = (#messages - 1) * 1.5
-        C_Timer.After(totalDelay + 0.5, function()
-            pendingMessage = false
-        end)
-    else
-        -- Send message directly (no timer) to avoid taint issues
-        if channel then
-            SendChatMessage(message, channel)
-        else
-            print(message)
-        end
-        pendingMessage = false
-    end
-end
-
-local function SendContent(content, group)
-    local channel = nil
+    -- Send message directly (no timer) to avoid taint issues
     if group == "raid" then
-        channel = "RAID"
+        SendChatMessage(content, "RAID")
     elseif group == "party" then
-        channel = "PARTY"
+        SendChatMessage(content, "PARTY")
+    else
+        -- Fallback - print locally
+        print(content)
     end
-    SendMessage(content, channel)
+
+    pendingMessage = false
 end
 
 local function TriggerContent(triggerType)
@@ -424,12 +313,6 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
         local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
         local message = prefix .. content
 
-        -- Truncate if too long (no splitting for manual commands to avoid taint)
-        if #message > MAX_CHAT_MESSAGE_LENGTH then
-            print("Message too long (" .. #message .. " chars), truncating to " .. MAX_CHAT_MESSAGE_LENGTH)
-            message = message:sub(1, MAX_CHAT_MESSAGE_LENGTH)
-        end
-
         -- Send directly without timers to avoid taint
         if IsInRaid() then
             SendChatMessage(message, "RAID")
@@ -467,12 +350,6 @@ SlashCmdList["TARBALLSDADABASE"] = function(msg)
 
         local prefix = Dadabase.DatabaseManager:GetContentPrefix(moduleId)
         local message = prefix .. content
-
-        -- Truncate if too long (no splitting for manual commands to avoid taint)
-        if #message > MAX_CHAT_MESSAGE_LENGTH then
-            print("Message too long (" .. #message .. " chars), truncating to " .. MAX_CHAT_MESSAGE_LENGTH)
-            message = message:sub(1, MAX_CHAT_MESSAGE_LENGTH)
-        end
 
         -- Send directly without timers to avoid taint
         SendChatMessage(message, "GUILD")

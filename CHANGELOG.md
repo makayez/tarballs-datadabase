@@ -10,7 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Custom prefix support per module (enable/disable, custom text input with 50 character limit)
-- Automatic message splitting for long content (messages >255 chars split at word boundaries with 1.5s delay between chunks)
 - Visual divider separating auto-save settings from manual-save content editor
 - Content Editor section clearly labeled with explicit save instructions
 - Save Changes and Reset to Defaults buttons now contained within editor frame with divider line
@@ -30,31 +29,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Maximum global cooldown increased from 60 seconds to 600 seconds (10 minutes)
 - Settings panel integration redesigned - Options > Addons > Tarball's Dadabase now shows a simple panel with a button to open the full configuration dialog
 - Tab button positioning now uses absolute positioning for consistent layout regardless of display method
+- Content entry max length reduced to 205 characters (from 255) to accommodate 50 character prefix without exceeding 255 char message limit
 
 ### Fixed
 - **Critical:** SavedVariables declaration in TOC file (was TarballsDadabase, corrected to TarballsDadabaseDB) - settings and statistics now persist across restarts
-- **Critical:** Taint issue with manual commands - `/dadabase say` and `/dadabase guild` now send single messages only (no splitting) to avoid "blocked from Blizzard UI action" errors
-- **Critical:** Taint issue causing "blocked from Blizzard UI action" error (removed C_Timer.After from single message sending)
-- **Critical:** Race condition in multi-message splits (now validates group still exists before sending delayed messages)
-- **Critical:** Message splitting edge cases (empty chunks, infinite loops, proper word-boundary detection)
+- **Critical:** Removed message splitting code that caused taint issues - content now limited to 205 chars to ensure prefix + content always fits in 255 char limit
 - Removed dead code: 3 unused legacy functions (AddContent, RemoveContent, GetContent) - 43 lines removed
 - Removed orphaned death trigger logic from Database.lua after PLAYER_DEAD event was removed
-- Message splitting now accounts for prefix length in total message size calculation
 - Config panel toggle bug when switching between `/dadabase` command and Options menu (now uses IsVisible() instead of IsShown())
 - Config panel no longer attempts to embed in Settings window, preventing button overflow and display issues
 - Custom prefix controls now properly gray out when "Enable prefix" is toggled off
-- Content editor now allows entries up to 500 characters (previously 255) - long content is automatically split when sent via automatic triggers (wipes)
 - Manual commands now validate content exists and provide helpful error messages
 
 ### Technical
-- SendMessage() function handles message splitting for automatic triggers (wipe events) with smart word-boundary detection
-- Manual commands send single messages directly without timers to avoid taint issues with protected functions
-- Message splitting with smart word-boundary detection (searches for spaces/punctuation within last 50 chars)
-- Channel validation in C_Timer callbacks prevents errors when player leaves group during multi-message send
+- Simplified SendContent() function - removed all message splitting logic (120+ lines removed)
+- All messages now sent directly without timers to avoid taint issues with protected functions
+- Content length validation enforced at save time (205 char max per entry)
 - Consolidated all sanitization logic into single DB:SanitizeText() function (DRY principle)
 - Trigger logic simplified: module enabled + group match = triggers (no longer checks triggers.wipe)
 - RefreshControls function reduced from 58 to 38 lines using SetControlState helper
-- Added safety limits to message splitting (max 20 iterations, progress detection)
 - UpdatePrefixControls() function manages custom prefix control states based on prefix enabled flag
 - Removed SetModuleTrigger() function (dead code, never called)
 - Removed triggers from module defaultSettings (new installs don't need them)
