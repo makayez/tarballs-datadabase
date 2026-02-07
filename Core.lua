@@ -126,17 +126,18 @@ local function SendContent(content, group)
     pendingMessage = true
     DebugPrint("Sending content to " .. (group or "local") .. " (" .. #content .. " chars)")
 
-    -- Send message directly (no timer) to avoid taint issues
-    if group == "raid" then
-        SendChatMessage(content, "RAID")
-    elseif group == "party" then
-        SendChatMessage(content, "PARTY")
-    else
-        -- Fallback - print locally
-        print(content)
-    end
-
-    pendingMessage = false
+    -- Delay message to avoid protected context (ADDON_ACTION_FORBIDDEN)
+    C_Timer.After(0.1, function()
+        if group == "raid" then
+            SendChatMessage(content, "RAID")
+        elseif group == "party" then
+            SendChatMessage(content, "PARTY")
+        else
+            -- Fallback - print locally
+            print(content)
+        end
+        pendingMessage = false
+    end)
 end
 
 local function TriggerContent(triggerType)
